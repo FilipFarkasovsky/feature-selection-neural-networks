@@ -8,14 +8,16 @@ This repository extends the work of Barbieri et al. (2024), *“Analysis and Com
 ---
 
 ## Original Work / Citation 
-This repository extends the work of:
+This repository builds upon prior work. Please cite both the original paper and this repository if used:
+
 - **Original Work:**  
-- Matheus Cezimbra Barbieri, Bruno Iochins Grisci, Marcio Dorn. _Analysis and Comparison of Feature Selection Methods Towards Performance and Stability_, **Expert Systems with Applications**, 123667, March **2024**, DOI: [https://doi.org/10.1016/j.eswa.2024.123667](https://doi.org/10.1016/j.eswa.2024.123667)
+Matheus Cezimbra Barbieri, Bruno Iochins Grisci, Marcio Dorn. _Analysis and Comparison of Feature Selection Methods Towards Performance and Stability_, **Expert Systems with Applications**, 123667, March **2024**, DOI: [https://doi.org/10.1016/j.eswa.2024.123667](https://doi.org/10.1016/j.eswa.2024.123667) 
   Original GitHub repository: [https://github.com/sbcblab/GenExpFS](https://github.com/sbcblab/GenExpFS)
 
-  - **This Extension:**  
-  - Filip Farkašovský. *Extended Feature Selection Analysis in Neural Networks*, GitHub repository, 2026.  
+- **This Extension:**  
+  Filip Farkašovský. *Extended Feature Selection Analysis in Neural Networks*, GitHub repository, 2026.  
   [https://github.com/FilipFarkasovsky/feature-selection-neural-networks](https://github.com/FilipFarkasovsky/feature-selection-neural-networks)  
+
 
 
 
