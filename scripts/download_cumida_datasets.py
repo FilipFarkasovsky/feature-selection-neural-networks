@@ -8,11 +8,11 @@ from tqdm import tqdm
 DATASETS_PATH = 'datasets/cumida'
 
 DATASETS_URLS = [
-    'http://sbcb.inf.ufrgs.br/carbm/static/cumida/Genes/Liver/GSE22405/Liver_GSE22405.csv',
-    'http://sbcb.inf.ufrgs.br/carbm/static/cumida/Genes/Prostate/GSE6919_U95C/Prostate_GSE6919_U95C.csv',
-    'http://sbcb.inf.ufrgs.br/carbm/static/cumida/Genes/Breast/GSE70947/Breast_GSE70947.csv',
-    'http://sbcb.inf.ufrgs.br/carbm/static/cumida/Genes/Renal/GSE53757/Renal_GSE53757.csv',
-    'http://sbcb.inf.ufrgs.br/carbm/static/cumida/Genes/Colorectal/GSE44861/Colorectal_GSE44861.csv'
+    'https://sbcb.inf.ufrgs.br/data/cumida/Genes/Liver/GSE22405/Liver_GSE22405.csv',
+    'https://sbcb.inf.ufrgs.br/data/cumida/Genes/Prostate/GSE6919_U95C/Prostate_GSE6919_U95C.csv',
+    'https://sbcb.inf.ufrgs.br/data/cumida/Genes/Breast/GSE70947/Breast_GSE70947.csv',
+    'https://sbcb.inf.ufrgs.br/data/cumida/Genes/Renal/GSE53757/Renal_GSE53757.csv',
+    'https://sbcb.inf.ufrgs.br/data/cumida/Genes/Colorectal/GSE44861/Colorectal_GSE44861.csv'
 ]
 
 if not os.path.exists(DATASETS_PATH):
