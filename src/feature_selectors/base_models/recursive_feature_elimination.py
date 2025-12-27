@@ -24,7 +24,7 @@ class RFE(BaseSelector):
         if len(remaining) == 1:
             return remaining[0]
 
-        _y = label_binarize(y, np.unique(y)) if self._encode else y
+        _y = label_binarize(y = y, classes = np.unique(y)) if self._encode else y
         self._model.fit(X[:, remaining], _y, **kwargs)
 
         weights = eval(f'self._model.{self._weights_attr}{"()" if self._is_callable else ""}')

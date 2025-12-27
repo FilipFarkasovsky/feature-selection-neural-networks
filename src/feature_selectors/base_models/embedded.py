@@ -19,7 +19,7 @@ class BaseEmbeddedFeatureSelector(BaseSelector):
         self.check_already_fitted()
         self._X = X
 
-        _y = label_binarize(y, np.unique(y)) if self._encode else y
+        _y = label_binarize(y = y, classes = np.unique(y)) if self._encode else y
 
         self._model.fit(X, _y, **kwargs)
 

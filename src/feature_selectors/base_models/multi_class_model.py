@@ -32,7 +32,7 @@ class MultiClassModel(BaseSelector):
         if len(classes) <= 2:
             self._fit(X, y, all_weights, **kwargs)
         else:
-            binarized_classes = label_binarize(y, classes).transpose()
+            binarized_classes = label_binarize(y = y, classes = classes).transpose()
             for bin_y in binarized_classes:
                 self._fit(X, bin_y, all_weights, **kwargs)
 

@@ -28,7 +28,7 @@ class ReliefFFeatureSelector(BaseSelector):
         n_samples, n_features = X.shape
         self._weights = np.zeros(n_features)
 
-        _, neighbors = NearestNeighbors(n_samples, metric='manhattan').fit(X).kneighbors(X)
+        _, neighbors = NearestNeighbors(n_neighbors = n_samples, metric='manhattan').fit(X).kneighbors(X)
 
         classes, classes_counts = np.unique(y, return_counts=True)
         class_prob = {classes[n]: x for n, x in enumerate(classes_counts / n_samples)}

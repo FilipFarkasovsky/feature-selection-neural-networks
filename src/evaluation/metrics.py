@@ -6,8 +6,8 @@ from sklearn.preprocessing import label_binarize
 
 def one_vs_all_roc_auc(y, y_pred):
     classes = np.unique(y)
-    bin_true = label_binarize(y, classes).transpose()
-    bin_pred = label_binarize(y_pred, classes).transpose()
+    bin_true = label_binarize(y = y, classes = classes).transpose()
+    bin_pred = label_binarize(y=y_pred, classes=classes).transpose()
 
     scores = [
         roc_auc_score(tr, pr)
