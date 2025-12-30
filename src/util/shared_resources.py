@@ -3,9 +3,12 @@ resources = None
 
 class SharedResources:
     @staticmethod
-    def set_resources(r):
+    def set_resources(datasets, lock):
         global resources
-        resources = r
+        resources = {
+        "datasets": datasets,
+        "lock": lock
+        }
 
     @staticmethod
     def get():

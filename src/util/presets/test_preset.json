@@ -1,0 +1,41 @@
+[
+    {
+        "description": "Test that should run every algorithm once",
+        "run_once": false,
+        "datasets": [
+            "xor_500samples_50features"
+        ],
+        "algorithms": [
+            {
+                "name": "DecisionTree",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "LinearSVM",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "LRFowardSelection",
+                "params": [[5]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "RandomForest",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "SVMGeneticAlgorithm",
+                "params": [[30]],
+                "runs": 1,
+                "sample_runs": 1
+            }
+        ]
+    }
+]
