@@ -13,12 +13,10 @@ from .stability import stability_for_sets, stability_for_ranks, stability_for_we
 class ResultsStability:
     def __init__(
         self,
-        results_loader: ResultsLoader,
         evaluate_at=[5, 10, 20, 50, 100, 200],
         verbose=1,
         n_workers=1
     ):
-        self._results_loader = results_loader
         self._evaluate_at = evaluate_at
         self._verbose = verbose
         self._n_workers = n_workers
@@ -40,21 +38,21 @@ class ResultsStability:
             .groupby(['name', 'selected']) \
             .agg(fields).reset_index()
 
-    def algorithms_stability(self, sampling=None, evaluate_at_all_features=False):
-        if sampling is not None:
-            df = self._results_loader.load_by_sampling(sampling)
-        else:
-            df = self._results_loader.load_all()
-
-        return self.stability_for_results(df, evaluate_at_all_features)
-
     def summarized_algorithms_stability(
         self,
+        results_path,
         sampling=None,
         return_complete=False,
         evaluate_at_all_features=False
     ):
-        complete_stability = self.algorithms_stability(sampling, evaluate_at_all_features)
+
+        if sampling is not None:
+            df = ResultsLoader.load_by_sampling(results_path, sampling)
+        else:
+            df = ResultsLoader.load_all(results_path)
+
+        complete_stability = self.stability_for_results(df, evaluate_at_all_features)
+
         summarized_stability = self._summarize_algorithm_stability(complete_stability)
         if return_complete:
             return summarized_stability, complete_stability

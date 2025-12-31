@@ -5,20 +5,17 @@ import pandas as pd
 
 from .model import Result
 
-
 class ResultsWritter:
-    def __init__(self, base_dir):
-        self._base_dir = base_dir
-
+    @staticmethod
+    def write_result(result: Result, file_name: str, base_dir: str):
         if not os.path.exists(base_dir):
             os.makedirs(base_dir)
         elif not os.path.isdir(base_dir):
             raise Exception(f"base_dir[{base_dir}] must be a directory!")
-
-    def write_result(self, result: Result, file_name: str):
+        
         result_dict = result.to_dict()
         file_name = file_name if file_name.endswith('.csv') else f"{file_name}.csv"
-        path_to_save = os.path.join(self._base_dir, file_name)
+        path_to_save = os.path.join(base_dir, file_name)
         with open(path_to_save, "a") as f:
             writer = csv.DictWriter(f, result_dict.keys())
 
@@ -27,9 +24,15 @@ class ResultsWritter:
 
             writer.writerow(result_dict)
 
-    def write_dataframe(self, df: pd.DataFrame, file_name: str, replace=True):
+    @staticmethod
+    def write_dataframe(df: pd.DataFrame, file_name: str,  base_dir: str, replace=True):
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir)
+        elif not os.path.isdir(base_dir):
+            raise Exception(f"base_dir[{base_dir}] must be a directory!")
+        
         file_name = file_name if file_name.endswith('.csv') else f"{file_name}.csv"
-        path_to_save = os.path.join(self._base_dir, file_name)
+        path_to_save = os.path.join(base_dir, file_name)
 
         if replace or not os.path.exists(path_to_save):
             df.to_csv(path_to_save, index=False)

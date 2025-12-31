@@ -3,6 +3,7 @@ from time import time
 import traceback
 
 from data.sampling import bootstrap, percent90
+from results.writter import ResultsWritter
 from results.model import Result
 from feature_selectors.base_models import ResultType
 from .model import Task
@@ -17,8 +18,8 @@ YELLOW_COLOR = '\033[33m'
 
 
 class TaskRunner():
-    def __init__(self, results_writter, output_file_name, verbose=1):
-        self._results_writter = results_writter
+    def __init__(self, results_path, output_file_name, verbose=1):
+        self._results_path = results_path
         self._verbose = verbose
         self._output_file_name = output_file_name
 
@@ -66,7 +67,6 @@ class TaskRunner():
                 X, y = bootstrap(X, y)
             elif task.sampling == 'percent90':
                 X, y = percent90(X, y)
-
         except Exception:
             self._error(
                 f"Failed to load dataset `{task.dataset_name}` for task `{task.name}`!"
@@ -107,7 +107,7 @@ class TaskRunner():
 
             lock.acquire()
             try:
-                self._results_writter.write_result(result, self._output_file_name)
+                ResultsWritter.write_result(result, self._output_file_name, self._results_path)
                 self._print_end(task.name, task.dataset_name, time_spent)
             finally:
                 lock.release()

@@ -4,14 +4,9 @@ from results.loader import ResultsLoader
 
 
 class ExecutionTimesAggregator:
-    def __init__(
-        self,
-        results_loader: ResultsLoader,
-    ):
-        self._results_loader = results_loader
-
-    def aggregated_execution_times(self):
-        df = self._results_loader.load_all()
+    @staticmethod
+    def aggregated_execution_times(results_path):
+        df = ResultsLoader.load_all(results_path)
 
         max_features_per_alg_dataset = \
             df[['name', 'dataset_name', 'num_selected']] \

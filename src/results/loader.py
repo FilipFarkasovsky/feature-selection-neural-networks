@@ -8,13 +8,14 @@ from util.filesystem import files_in_dir_tree
 
 
 class ResultsLoader:
-    def __init__(self, results_path):
+    @staticmethod
+    def load_all(results_path):
         if not os.path.exists(results_path):
             raise Exception(f"'{results_path}' does not exist!")
 
-        self._is_dir = False
+        is_dir = False
         if os.path.isdir(results_path):
-            self._is_dir = True
+            is_dir = True
             if [f for f in files_in_dir_tree(results_path) if f.endswith('.csv')] == []:
                 raise Exception(f"No results found at {results_path}!")
 
@@ -22,20 +23,19 @@ class ResultsLoader:
             raise Exception(f"{results_path} should be either a path to dir "
                             f"containing csv files or a path to csv itself.")
 
-        self._results_path = results_path
 
-    def load_all(self):
-        if self._is_dir:
-            paths = files_in_dir_tree(self._results_path)
+        if is_dir:
+            paths = files_in_dir_tree(results_path)
             return pd.concat((pd.read_csv(p) for p in paths), ignore_index=True)
         else:
-            return pd.read_csv(self._results_path)
-
-    def load_by(self, field, field_value, allowed_field_values=None):
+            return pd.read_csv(results_path)
+        
+    @staticmethod
+    def load_by(results_path, field, field_value, allowed_field_values=None):
         if allowed_field_values is not None and field_value not in allowed_field_values:
             raise Exception(f"{field_value} must be one of: {allowed_field_values}")
 
-        df = self.load_all()
+        df = ResultsLoader.load_all(results_path)
         results = df[df[field] == field_value].reset_index(drop=True)
 
         if results.size == 0:
@@ -43,16 +43,20 @@ class ResultsLoader:
 
         return results
 
-    def load_by_sampling(self, sampling):
+    @staticmethod
+    def load_by_sampling(results_path, sampling):
         sampling_types = {s.value for s in SamplingType}
-        return self.load_by('sampling', sampling, allowed_field_values=sampling_types)
+        return ResultsLoader.load_by(results_path,'sampling', sampling, allowed_field_values=sampling_types)
 
-    def load_by_result_type(self, result_type):
+    @staticmethod
+    def load_by_result_type(results_path, result_type):
         result_types = {rt.value for rt in ResultType}
-        return self.load_by('result_type', result_type, allowed_field_values=result_types)
+        return ResultsLoader.load_by(results_path, 'result_type', result_type, allowed_field_values=result_types)
+    
+    @staticmethod    
+    def load_by_dataset(results_path, dataset_name):
+        return ResultsLoader.load_by(results_path, 'dataset_name', dataset_name)
 
-    def load_by_dataset(self, dataset_name):
-        return self.load_by('dataset_name', dataset_name)
-
-    def load_by_name(self, name):
-        return self.load_by('name', name)
+    @staticmethod    
+    def load_by_name(results_path, name):
+        return ResultsLoader.load_by(results_path, 'name', name)

@@ -5,6 +5,7 @@ import pandas as pd
 
 from util.dict import flatten_dict
 from results.loader import ResultsLoader
+from evaluation.selection import SelectionScorer
 
 
 DEFAULT_COLOR = '\033[39m'
@@ -17,37 +18,34 @@ WHITE_COLOR = '\033[37m'
 class ResultsScorer:
     def __init__(
         self,
-        results_loader: ResultsLoader,
         datasets,
-        selection_scorer,
         evaluate_at=[5, 10, 20, 50, 100, 200],
         verbose=1
     ):
-        self._results_loader = results_loader
         self._datasets = datasets
-        self._selection_scorer = selection_scorer
+        self._selection_scorer = SelectionScorer()
         self._evaluate_at = evaluate_at
         self._verbose = verbose
 
-    def score_all(self):
+    def score_all(self, results_path):
         scores = []
 
         try:
-            subset_results = self._results_loader.load_by_result_type('subset')
+            subset_results = ResultsLoader.load_by_result_type(results_path, 'subset')
             subset_scores = self.evaluate_subsets(subset_results)
             scores.append(subset_scores)
         except Exception as e:
             print(f"Could not load subset results, reson: {e}")
 
         try:
-            rank_results = self._results_loader.load_by_result_type('rank')
+            rank_results = ResultsLoader.load_by_result_type(results_path, 'rank')
             rank_scores = self.evaluate_ordered(rank_results)
             scores.append(rank_scores)
         except Exception as e:
             print(f"Could not load rank results, reson: {e}")
 
         try:
-            weights_results = self._results_loader.load_by_result_type('weights')
+            weights_results = ResultsLoader.load_by_result_type(results_path, 'weights')
             weights_scores = self.evaluate_ordered(weights_results)
             scores.append(weights_scores)
         except Exception as e:
@@ -69,8 +67,8 @@ class ResultsScorer:
 
         return scores.groupby(['name', 'selected']).agg(fields).reset_index()
 
-    def summarized_score_all(self, return_complete=False):
-        complete_scoring = self.score_all()
+    def summarized_score_all(self, results_path, return_complete=False):
+        complete_scoring = self.score_all(results_path)
         summarized_scoring = self._summarized_scores(complete_scoring)
         if return_complete:
             return summarized_scoring, complete_scoring
