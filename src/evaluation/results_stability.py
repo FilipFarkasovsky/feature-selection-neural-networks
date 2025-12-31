@@ -56,7 +56,7 @@ class ResultsStability:
         if return_complete:
             return summarized_stability, complete_stability
         else:
-            return summarized_stability
+            return summarized_stability 
 
     def _print_evaluating(self, name, dataset_name, num_selected, num_executions):
         if self._verbose > 0:
