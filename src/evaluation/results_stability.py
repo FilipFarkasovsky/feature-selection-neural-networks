@@ -55,7 +55,7 @@ class ResultsStability:
         summarized_stability = self._summarize_algorithm_stability(complete_stability)
         if return_complete:
             return summarized_stability, complete_stability
-        else:
+        else: 
             return summarized_stability 
 
     def _print_evaluating(self, name, dataset_name, num_selected, num_executions):
