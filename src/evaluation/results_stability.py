@@ -45,7 +45,6 @@ class ResultsStability:
         return_complete=False,
         evaluate_at_all_features=False
     ):
-
         if sampling is not None:
             df = ResultsLoader.load_by_sampling(results_path, sampling)
         else:
