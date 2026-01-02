@@ -16,37 +16,30 @@ WHITE_COLOR = '\033[37m'
 
 
 class ResultsScorer:
-    def __init__(
-        self,
-        datasets,
-        evaluate_at=[5, 10, 20, 50, 100, 200],
-        verbose=1
-    ):
-        self._datasets = datasets
-        self._selection_scorer = SelectionScorer()
-        self._evaluate_at = evaluate_at
-        self._verbose = verbose
+    DEFAULT_EVALUATE_AT = [5, 10, 20, 50, 100, 200]
+    DEFAULT_VERBOSE = 1
 
-    def score_all(self, results_path):
+    @staticmethod
+    def score_all(datasets, results_path, evaluate_at = DEFAULT_EVALUATE_AT):
         scores = []
 
         try:
             subset_results = ResultsLoader.load_by_result_type(results_path, 'subset')
-            subset_scores = self.evaluate_subsets(subset_results)
+            subset_scores = ResultsScorer.evaluate_subsets(datasets, subset_results)
             scores.append(subset_scores)
         except Exception as e:
             print(f"Could not load subset results, reson: {e}")
 
         try:
             rank_results = ResultsLoader.load_by_result_type(results_path, 'rank')
-            rank_scores = self.evaluate_ordered(rank_results)
+            rank_scores = ResultsScorer.evaluate_ordered(datasets, rank_results, evaluate_at)
             scores.append(rank_scores)
         except Exception as e:
             print(f"Could not load rank results, reson: {e}")
 
         try:
             weights_results = ResultsLoader.load_by_result_type(results_path, 'weights')
-            weights_scores = self.evaluate_ordered(weights_results)
+            weights_scores = ResultsScorer.evaluate_ordered(datasets, weights_results, evaluate_at)
             scores.append(weights_scores)
         except Exception as e:
             print(f"Could not load weighted results, reson: {e}")
@@ -56,7 +49,8 @@ class ResultsScorer:
 
         return pd.concat(scores)
 
-    def _summarized_scores(self, scores):
+    @staticmethod
+    def _summarized_scores(scores):
         fields = {
             'SupportVectorMachine_macro_f1': np.mean,
             'DecisionTree_macro_f1': np.mean,
@@ -67,26 +61,23 @@ class ResultsScorer:
 
         return scores.groupby(['name', 'selected']).agg(fields).reset_index()
 
-    def summarized_score_all(self, results_path, return_complete=False):
-        complete_scoring = self.score_all(results_path)
-        summarized_scoring = self._summarized_scores(complete_scoring)
+    @staticmethod
+    def summarized_score_all(results_path, datasets, return_complete=False):
+        complete_scoring = ResultsScorer.score_all(datasets, results_path)
+        summarized_scoring = ResultsScorer._summarized_scores(complete_scoring)
         if return_complete:
             return summarized_scoring, complete_scoring
         else:
             return summarized_scoring
 
-    def _dataset_from_result(self, result):
+    @staticmethod
+    def _dataset_from_result(datasets, result):
         dataset_name = result['dataset_name']
-        X, y, _ = self._datasets.get_dataset(dataset_name).get()
+        X, y, _ = datasets.get_dataset(dataset_name).get()
         return X, y
 
-    def _values_from_result(self, result):
-        return json.loads(result['values'])
-
-    def _weights_to_rank(self, weights):
-        return [int(x) for x in np.argsort(weights)[::-1]]
-
-    def _get_result_model(self, result):
+    @staticmethod
+    def _get_result_model(result):
         return {
             'name': result['name'],
             'processing_time': result['processing_time'],
@@ -97,61 +88,65 @@ class ResultsScorer:
             'values': result['values'],
         }
 
-    def _print(self, result):
-        if self._verbose > 1:
+    @staticmethod
+    def _print(result, verbose = DEFAULT_VERBOSE):
+        if verbose > 1:
             print(
                 f"{YELLOW_COLOR}Evaluated results for {GREEN_COLOR}{result['name']}\n"
                 f"{WHITE_COLOR}  dataset:{CYAN_COLOR} {result['dataset']}\n"
                 f"{WHITE_COLOR}  features:{CYAN_COLOR} {result['features']}{DEFAULT_COLOR}\n"
                 f"{WHITE_COLOR}  selected:{CYAN_COLOR} {result['selected']}{DEFAULT_COLOR}"
             )
-        elif self._verbose > 0:
+        elif verbose > 0:
             print(
                 f"Evaluated results for {result['name']}\n"
                 f"  dataset: {result['dataset']}\n"
                 f"  selected: {result['selected']}\n"
                 f"  features: {result['features']}"
             )
-
-    def evaluate_subsets(self, subset_results):
+    
+    @staticmethod
+    def evaluate_subsets(datasets, subset_results):
         def evaluate(result):
-            selected = self._values_from_result(result)
-            X, y = self._dataset_from_result(result)
-            eval_results = self._selection_scorer.eval(X[:, selected], y)
+            selected = json.loads(result['values'])
+            X, y = ResultsScorer._dataset_from_result(datasets, result)
+            eval_results = SelectionScorer.eval(X[:, selected], y)
 
-            result_model = self._get_result_model(result)
-            self._print(result_model)
+            result_model = ResultsScorer._get_result_model(result)
+            ResultsScorer._print(result_model)
 
             return pd.Series({**result_model, **flatten_dict(eval_results)})
 
         return subset_results.apply(evaluate, axis=1)
 
-    def evaluate_ordered(self, results):
+    @staticmethod
+    def evaluate_ordered(datasets, results, evaluate_at):
         def evaluate(result):
             result_type = result['result_type']
-            values = self._values_from_result(result)
+            values = json.loads(result['values'])
 
             if result_type == 'rank':
                 rank = values
             elif result_type == 'weights':
-                rank = self._weights_to_rank(values)
+                rank = [int(x) for x in np.argsort(values)[::-1]]
+
             else:
                 raise Exception("Result type must be either `rank` or `weights`")
 
-            X, y = self._dataset_from_result(result)
+            X, y = ResultsScorer._dataset_from_result(datasets, result)
 
-            result_model = self._get_result_model(result)
+            result_model = ResultsScorer._get_result_model(result)
 
             results_data = []
-            for k in self._evaluate_at:
+            for k in evaluate_at:
                 if k >= len(rank):
                     continue
                 selected = rank[:k]
-                eval_results = self._selection_scorer.eval(X[:, selected], y)
+                eval_results = SelectionScorer.eval(X[:, selected], y)
                 results = {**result_model, **flatten_dict(eval_results)}
                 results['selected'] = k
                 results_data.append(results)
-                self._print(results)
+                ResultsScorer._print(results)
 
             return pd.DataFrame(results_data)
 

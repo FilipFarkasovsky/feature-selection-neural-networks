@@ -6,15 +6,12 @@ from .models import default_models
 
 
 class SelectionScorer:
-    def __init__(self, models=default_models, scoring=default_scoring):
-        self._models = models
-        self._scoring = scoring
-
-    def _eval(self, X, y, model):
+    @staticmethod
+    def _eval(X, y, model, scoring):
         X = minmax_scale(X)
         cv = StratifiedKFold()
 
-        results = cross_validate(model, X, y, cv=cv, scoring=self._scoring)
+        results = cross_validate(model, X, y, cv=cv, scoring=scoring)
 
         avg_results = {
             k.replace("test_", ""): v.mean()
@@ -23,6 +20,7 @@ class SelectionScorer:
         }
 
         return avg_results
-
-    def eval(self, X, y):
-        return {name: self._eval(X, y, model) for name, model in self._models.items()}
+    
+    @staticmethod
+    def eval(X, y, models=default_models, scoring=default_scoring):
+        return {name: SelectionScorer._eval(X, y, model, scoring) for name, model in models.items()}

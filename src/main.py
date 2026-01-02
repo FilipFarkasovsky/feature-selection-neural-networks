@@ -6,7 +6,6 @@ from sklearn.exceptions import ConvergenceWarning, UndefinedMetricWarning
 
 from data.shared_datasets import SharedDatasets
 from results.writter import ResultsWritter
-from results.loader import ResultsLoader
 from task.runner import TaskRunner
 from util.shared_resources import SharedResources
 from util.command_line import get_args
@@ -79,8 +78,7 @@ def main():
     # Scoring of feature selection results
     selection_filename = selection_filename if selection_filename.endswith('.csv') else f'{selection_filename}.csv'
     selection_results_path = os.path.join(results_path, selection_filename)
-    scorer = ResultsScorer(datasets, verbose=verbose)
-    summarized_scoring, scoring = scorer.summarized_score_all(selection_results_path,return_complete=True)
+    summarized_scoring, scoring = ResultsScorer.summarized_score_all(selection_results_path, datasets,return_complete=True)
 
     ResultsWritter.write_dataframe(summarized_scoring, scoring_filename, results_path)
     ResultsWritter.write_dataframe(scoring, f'{scoring_filename}-complete', results_path)
