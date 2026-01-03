@@ -11,17 +11,10 @@ from .stability import stability_for_sets, stability_for_ranks, stability_for_we
 
 
 class ResultsStability:
-    def __init__(
-        self,
-        evaluate_at=[5, 10, 20, 50, 100, 200],
-        verbose=1,
-        n_workers=1
-    ):
-        self._evaluate_at = evaluate_at
-        self._verbose = verbose
-        self._n_workers = n_workers
+    DEFAULT_EVALUATE_AT = [5, 10, 20, 50, 100, 200]
 
-    def _summarize_algorithm_stability(self, stability):
+    @staticmethod
+    def _summarize_algorithm_stability(stability):
         fields = {
             'executions': np.sum,
             'jaccard': np.mean,
@@ -38,28 +31,34 @@ class ResultsStability:
             .groupby(['name', 'selected']) \
             .agg(fields).reset_index()
 
+    @staticmethod
     def summarized_algorithms_stability(
-        self,
         results_path,
         sampling=None,
+        evaluate_at = None,
+        n_workers = 1,
+        verbose = 1,
+        evaluate_at_all_features=False,
         return_complete=False,
-        evaluate_at_all_features=False
     ):
+        evaluate_at = evaluate_at or ResultsStability.DEFAULT_EVALUATE_AT
+
         if sampling is not None:
             df = ResultsLoader.load_by_sampling(results_path, sampling)
         else:
             df = ResultsLoader.load_all(results_path)
 
-        complete_stability = self.stability_for_results(df, evaluate_at_all_features)
+        complete_stability = ResultsStability.stability_for_results(df, evaluate_at, n_workers, verbose, evaluate_at_all_features)
 
-        summarized_stability = self._summarize_algorithm_stability(complete_stability)
+        summarized_stability = ResultsStability._summarize_algorithm_stability(complete_stability)
         if return_complete:
             return summarized_stability, complete_stability
         else: 
             return summarized_stability 
 
-    def _print_evaluating(self, name, dataset_name, num_selected, num_executions):
-        if self._verbose > 0:
+    @staticmethod
+    def _print_evaluating(name, dataset_name, num_selected, num_executions, verbose):
+        if verbose > 0:
             print(
                 f"Evaluating stability for {name}:\n"
                 f"  dataset: {dataset_name}\n"
@@ -67,7 +66,8 @@ class ResultsStability:
                 f"  executions: {num_executions}"
             )
 
-    def _stability_for_result(self, df, evaluate_at_all_features=True):
+    @staticmethod
+    def _stability_for_result(df, evaluate_at, evaluate_at_all_features=True, verbose = 1):
         values = np.stack(deepcopy(df['values']).apply(json.loads).values)
 
         name = deepcopy(df['name'].iloc[0])
@@ -86,7 +86,7 @@ class ResultsStability:
             'selected': num_selected,
         }
 
-        evaluate_at_k = [k for k in self._evaluate_at if k <= num_selected]
+        evaluate_at_k = [k for k in evaluate_at if k <= num_selected]
         if num_selected not in evaluate_at_k and evaluate_at_all_features and num_selected == num_features:
             evaluate_at_k += [num_selected]
 
@@ -101,7 +101,7 @@ class ResultsStability:
             for k in evaluate_at_k:
                 results = deepcopy(result_model)
 
-                self._print_evaluating(name, dataset_name, k,  num_executions)
+                ResultsStability._print_evaluating(name, dataset_name, k,  num_executions, verbose)
 
                 rank_at_k = ranks[:, :k]
 
@@ -125,33 +125,36 @@ class ResultsStability:
             return pd.DataFrame(all_results)
 
         if result_type == 'subset':
-            self._print_evaluating(name, dataset_name, num_selected, num_executions)
+            ResultsStability._print_evaluating(name, dataset_name, num_selected, num_executions, verbose)
             subset_results = {**result_model, **stability_for_sets(values, num_features)}
             return pd.DataFrame([subset_results])
 
-    def stability_for_results(self, df, evaluate_at_all_features=True):
-        if self._verbose > 0:
+    @staticmethod
+    def stability_for_results(df,  evaluate_at, n_workers, verbose, evaluate_at_all_features=True):
+        if verbose > 0:
             print("Starting stability analysis.")
 
         grouped = df.groupby(['name', 'dataset_name', 'num_selected'])
         groups = [g for i, g in grouped]
 
-        if self._verbose > 0:
+        if verbose > 0:
             print(f"Grouped results in {len(groups)} groups.")
 
-        if self._n_workers > 1:
-            with Pool(self._n_workers) as pool:
-                eval_at_max = [evaluate_at_all_features for _ in groups]
-
+        if n_workers > 1:
+            with Pool(n_workers) as pool:
+                args = [
+                    (g, evaluate_at, evaluate_at_all_features, verbose)
+                    for g in groups
+                ]
                 stabilities = pool.starmap(
-                    self._stability_for_result,
-                    zip(groups, eval_at_max)
+                    ResultsStability._stability_for_result,
+                    args
                 )
 
         else:
             stabilities = []
             for g in groups:
-                result = self._stability_for_result(g, evaluate_at_all_features)
+                result = ResultsStability._stability_for_result(g, evaluate_at, evaluate_at_all_features, verbose)
                 stabilities.append(result)
 
         return pd.concat(stabilities)

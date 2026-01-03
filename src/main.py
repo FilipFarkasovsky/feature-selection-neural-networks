@@ -84,11 +84,9 @@ def main():
     ResultsWritter.write_dataframe(scoring, f'{scoring_filename}-complete', results_path)
 
     # Stability analysis of feature selection methods
-    stability_evaluator = ResultsStability(verbose=verbose, n_workers=num_workers)
-
     try:
-        alg_stab_sum, alg_stab = stability_evaluator.summarized_algorithms_stability(
-            selection_results_path, sampling='bootstrap', return_complete=True
+        alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
+            selection_results_path, sampling='bootstrap', return_complete=True, verbose = verbose, n_workers = num_workers
         )
 
         ResultsWritter.write_dataframe(alg_stab_sum, f'{stability_filename}-bootstrap', results_path)
@@ -97,8 +95,8 @@ def main():
         print(f"Could not run data stability evaluation. Reason: {e}")
 
     try:
-        alg_stab_sum, alg_stab = stability_evaluator.summarized_algorithms_stability(
-            selection_results_path, sampling='percent90', return_complete=True
+        alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
+            selection_results_path, sampling='percent90', return_complete=True, verbose = verbose, n_workers = num_workers
         )
 
         ResultsWritter.write_dataframe(alg_stab_sum, f'{stability_filename}-90perecent', results_path)
@@ -106,11 +104,9 @@ def main():
     except Exception as e:
         print(f"Could not run data stability evaluation. Reason: {e}")
 
-    stability_evaluator = ResultsStability(verbose=verbose, n_workers=num_workers)
-
     try:
-        alg_det_sum, alg_det = stability_evaluator.summarized_algorithms_stability(
-            selection_results_path, sampling='none', return_complete=True
+        alg_det_sum, alg_det = ResultsStability.summarized_algorithms_stability(
+            selection_results_path, sampling='none', return_complete=True, verbose = verbose, n_workers = num_workers
         )
 
         ResultsWritter.write_dataframe(alg_det_sum, determinism_filename, results_path)
