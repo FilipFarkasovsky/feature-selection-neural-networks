@@ -1,6 +1,7 @@
 from .decision_tree import DecisionTreeFeatureSelector
 from .kruskall_wallis_filter import KruskalWallisFeatureSelector
 from .lasso import LassoFeatureSelector
+from .lassonet import LassoNetFeatureSelector
 from .linear_svm import LinearSVMFeatureSelector
 from .logistic_regression_forward_selector import LRForwardFeatureSelector
 from .logistic_regression_genetic_algorithm import LRGAFeatureSelector
@@ -19,6 +20,7 @@ __all__ = [
     DecisionTreeFeatureSelector,
     KruskalWallisFeatureSelector,
     LassoFeatureSelector,
+    LassoNetFeatureSelector,
     LinearSVMFeatureSelector,
     LRForwardFeatureSelector,
     LRGAFeatureSelector,

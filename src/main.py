@@ -33,17 +33,19 @@ def main():
     # configurations
     mode = args.mode
     verbose = args.verbose
-    presets = ['test_preset']
+    presets = args.presets
     presets_runs = args.presets_runs
-    num_workers = cpu_count()
+    num_workers = args.workers
 
-    results_path = 'results'
-    datasets_folder_path = 'datasets'
-    selection_filename = f'{current_timestamp}-selection'
-    scoring_filename = f'{current_timestamp}-scoring'
-    determinism_filename = f'{current_timestamp}-determinism'
-    stability_filename = f'{current_timestamp}-stability'
-    times_filename = f'{current_timestamp}-times'
+    # paths and file names configs
+    results_path = args.results_path
+    datasets_folder_path = args.datasets_path
+    selection_filename = args.selection_filename
+    scoring_filename = args.scoring_filename
+    determinism_filename = args.determinism_filename
+    stability_filename = args.stability_filename
+    times_filename = args.times_filename
+
     datasets_relative_paths = {
             # Xor Dataset
             'xor_500samples_50features': 'xor/xor_500samples_50features.csv',
@@ -69,54 +71,59 @@ def main():
     # Dataset loading and shared memory preparation
     datasets = SharedDatasets(datasets_folder_path, datasets_relative_paths, normalize=True)
 
-    # Feature selection stage 
-    task_runner = TaskRunner(results_path, selection_filename, verbose=verbose)
-    with Pool(num_workers, SharedResources.set_resources, initargs=(datasets, Lock())) as pool:
-        pool.map(task_runner.run, tasks_from_presets(presets, presets_runs, verbose=verbose))
+    # Feature selection stage
+    if mode in ['all', 'select']:
+        task_runner = TaskRunner(results_path, selection_filename, verbose=verbose)
+        with Pool(num_workers, SharedResources.set_resources, initargs=(datasets, Lock())) as pool:
+            pool.map(task_runner.run, tasks_from_presets(presets, presets_runs, verbose=verbose))
 
 
     # Scoring of feature selection results
-    selection_filename = selection_filename if selection_filename.endswith('.csv') else f'{selection_filename}.csv'
-    selection_results_path = os.path.join(results_path, selection_filename)
-    summarized_scoring, scoring = ResultsScorer.summarized_score_all(selection_results_path, datasets,return_complete=True)
+    if mode in ['all', 'scoring']:
+        selection_filename = selection_filename if selection_filename.endswith('.csv') else f'{selection_filename}.csv'
+        selection_results_path = os.path.join(results_path, selection_filename)
+        summarized_scoring, scoring = ResultsScorer.summarized_score_all(selection_results_path, datasets,return_complete=True)
 
-    ResultsWritter.write_dataframe(summarized_scoring, scoring_filename, results_path)
-    ResultsWritter.write_dataframe(scoring, f'{scoring_filename}-complete', results_path)
+        ResultsWritter.write_dataframe(summarized_scoring, scoring_filename, results_path)
+        ResultsWritter.write_dataframe(scoring, f'{scoring_filename}-complete', results_path)
 
     # Stability analysis of feature selection methods
-    try:
-        alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
-            selection_results_path, sampling='bootstrap', return_complete=True, verbose = verbose, n_workers = num_workers
-        )
+    if mode in ['all', 'stability']:
+        try:
+            alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
+                selection_results_path, sampling='bootstrap', return_complete=True, verbose = verbose, n_workers = num_workers
+            )
 
-        ResultsWritter.write_dataframe(alg_stab_sum, f'{stability_filename}-bootstrap', results_path)
-        ResultsWritter.write_dataframe(alg_stab, f'{stability_filename}-bootstrap-complete', results_path)
-    except Exception as e:
-        print(f"Could not run data stability evaluation. Reason: {e}")
+            ResultsWritter.write_dataframe(alg_stab_sum, f'{stability_filename}-bootstrap', results_path)
+            ResultsWritter.write_dataframe(alg_stab, f'{stability_filename}-bootstrap-complete', results_path)
+        except Exception as e:
+            print(f"Could not run data stability evaluation. Reason: {e}")
 
-    try:
-        alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
-            selection_results_path, sampling='percent90', return_complete=True, verbose = verbose, n_workers = num_workers
-        )
+        try:
+            alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
+                selection_results_path, sampling='percent90', return_complete=True, verbose = verbose, n_workers = num_workers
+            )
 
-        ResultsWritter.write_dataframe(alg_stab_sum, f'{stability_filename}-90perecent', results_path)
-        ResultsWritter.write_dataframe(alg_stab, f'{stability_filename}-90percent-complete', results_path)
-    except Exception as e:
-        print(f"Could not run data stability evaluation. Reason: {e}")
+            ResultsWritter.write_dataframe(alg_stab_sum, f'{stability_filename}-90perecent', results_path)
+            ResultsWritter.write_dataframe(alg_stab, f'{stability_filename}-90percent-complete', results_path)
+        except Exception as e:
+            print(f"Could not run data stability evaluation. Reason: {e}")
 
-    try:
-        alg_det_sum, alg_det = ResultsStability.summarized_algorithms_stability(
-            selection_results_path, sampling='none', return_complete=True, verbose = verbose, n_workers = num_workers
-        )
+    if mode in ['all', 'determinism']:
+        try:
+            alg_det_sum, alg_det = ResultsStability.summarized_algorithms_stability(
+                selection_results_path, sampling='none', return_complete=True, verbose = verbose, n_workers = num_workers
+            )
 
-        ResultsWritter.write_dataframe(alg_det_sum, determinism_filename, results_path)
-        ResultsWritter.write_dataframe(alg_det, f'{determinism_filename}-complete', results_path)
-    except Exception as e:
-        print(f"Could not run results determinism evaluation. Reason: {e}")
+            ResultsWritter.write_dataframe(alg_det_sum, determinism_filename, results_path)
+            ResultsWritter.write_dataframe(alg_det, f'{determinism_filename}-complete', results_path)
+        except Exception as e:
+            print(f"Could not run results determinism evaluation. Reason: {e}")
 
     # execution times evaluation
-    exec_times = ExecutionTimesAggregator.aggregated_execution_times(selection_results_path)
-    ResultsWritter.write_dataframe(exec_times, times_filename, results_path)
+    if mode in ['all', 'times']:
+        exec_times = ExecutionTimesAggregator.aggregated_execution_times(selection_results_path)
+        ResultsWritter.write_dataframe(exec_times, times_filename, results_path)
 
 
 if __name__ == '__main__':

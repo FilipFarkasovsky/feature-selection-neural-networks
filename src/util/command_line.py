@@ -29,7 +29,7 @@ def add_results_path(parser):
 def add_datasets_path(parser):
     parser.add_argument(
         '-d',
-        '--datasets_path',
+        '--datasets-path',
         default='datasets',
         help='Path to datasets.',
         type=str
@@ -41,7 +41,7 @@ def add_presets(parser):
         '-p',
         '--presets',
         nargs='*',
-        default=['test'],
+        default=['test_preset'],
         help='List of presets to be used in feature selection tasks.'
     )
 
@@ -113,8 +113,7 @@ def add_verbosity(parser):
 def get_args(arguments=None):
     parser = argparse.ArgumentParser(description='GenExpFS')
     help_str = 'Framework to run feature selections algorithms and evaluate performance and stability on their results'
-    subparsers = parser.add_subparsers(dest='mode', help=help_str)
-    subparsers.required = True
+    subparsers = parser.add_subparsers(dest='mode', help=help_str, required=True)
 
     # Main Parser (Run all)
     all_parser = subparsers.add_parser('all', help='Run entire selection and evaluation pipeline.')
