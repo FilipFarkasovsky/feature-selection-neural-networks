@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 
-DATASETS_PATH = 'datasets/xor'
+DATASETS_PATH = 'datasets/xor2'
 np.random.seed(1)
 
 
@@ -15,7 +15,7 @@ class DatasetParams:
         self.n_noisy = n_features - 2
 
     def name(self):
-        return f"xor_{self.n_samples}samples_{self.n_features}features"
+        return f"xor2_{self.n_samples}samples_{self.n_features}features"
 
     def csv_name(self):
         return self.name() + '.csv'
@@ -55,5 +55,26 @@ class DatasetParams:
         print(f"Saved dataset to {path_to_save}")
 
 
-dataset = DatasetParams(n_samples=500, n_features=50)
+dataset = DatasetParams(n_samples=500, n_features=8)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=16)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=32)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=64)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=128)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=256)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=512)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=500, n_features=1024)
 dataset.to_csv(DATASETS_PATH)

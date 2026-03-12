@@ -28,7 +28,7 @@ class BaseEmbeddedFeatureSelector(BaseSelector):
         if len(weights.shape) > 1:
             weights = weights.sum(axis=0)
 
-        self._weights = np.copy(weights)
+        self._weights = np.copy(weights).astype(float).tolist()
         self._rank = np.argsort(self._weights)[::-1]
 
         if self._n_features is not None:

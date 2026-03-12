@@ -7,20 +7,8 @@
         ],
         "algorithms": [
             {
-                "name": "DecisionTree",
-                "params": [[null]],
-                "runs": 1,
-                "sample_runs": 0
-            },
-            {
                 "name": "LinearSVM",
                 "params": [[null]],
-                "runs": 1,
-                "sample_runs": 0
-            },
-            {
-                "name": "LRFowardSelection",
-                "params": [[5]],
                 "runs": 1,
                 "sample_runs": 0
             },
@@ -31,14 +19,8 @@
                 "sample_runs": 0
             },
             {
-                "name": "SVMGeneticAlgorithm",
-                "params": [[30]],
-                "runs": 1,
-                "sample_runs": 1
-            },
-            {
-                "name": "LassoNet",
-                "params": [[null, null, null, 10]],
+                "name": "LassoNetFeatureSelector",
+                "params": [[[32, 32, 32], null, null, 50]],
                 "runs": 1,
                 "sample_runs": 0
             }
