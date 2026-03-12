@@ -1,7 +1,7 @@
 import numpy as np
 from lassonet import LassoNetClassifier
 
-from feature_selectors import BaseEmbeddedFeatureSelector
+from feature_selectors.base_models import BaseEmbeddedFeatureSelector
 
 
 class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):

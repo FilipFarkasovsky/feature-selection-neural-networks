@@ -35,6 +35,12 @@
                 "params": [[30]],
                 "runs": 1,
                 "sample_runs": 1
+            },
+            {
+                "name": "LassoNet",
+                "params": [[null, null, null, 10]],
+                "runs": 1,
+                "sample_runs": 0
             }
         ]
     }
