@@ -7,7 +7,7 @@ np.random.seed(1)
 
 
 class DatasetParams:
-    def __init__(self, n_samples: int, n_features: int, noise_std: float = 1.0):
+    def __init__(self, n_samples: int, n_features: int, noise_std: float = 0.5):
         self.n_samples = n_samples
         self.n_features = n_features
         self.n_informative = 5  # x1..x5
@@ -32,13 +32,22 @@ class DatasetParams:
         X_inf = np.random.uniform(0, 1, size=(self.n_samples, self.n_informative))
 
         # Friedman #1 target
-        y = (
+        f = (
             10 * np.sin(np.pi * X_inf[:, 0] * X_inf[:, 1])
             + 20 * (X_inf[:, 2] - 0.5) ** 2
             + 10 * X_inf[:, 3]
             + 5 * X_inf[:, 4]
             + np.random.normal(0, self.noise_std, self.n_samples)
         )
+
+        # Center f(x)
+        f_centered = f - np.mean(f)
+
+        # Logistic transformation
+        prob = 1 / (1 + np.exp(-f_centered))
+
+        # Sample labels\
+        y = np.random.binomial(1, prob)
 
         # Add noisy features
         if self.n_noisy > 0:
@@ -58,7 +67,7 @@ class DatasetParams:
 
         # all continuous features
         specs = ["%.6f" for _ in cols] + ["%.6f"]
-        cols += ["target"]
+        cols += ["class"]
 
         header = ",".join(f'"{c}"' for c in cols)
         path_to_save = os.path.join(path, self.csv_name())

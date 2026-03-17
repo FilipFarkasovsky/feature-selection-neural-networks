@@ -28,3 +28,5 @@ run-test-pipeline:
 run-reduced:
 	python src/main.py all -p reduced -n 31 -vv
 
+run-test:
+	python src/main.py all -p test_preset -n 1 -vv

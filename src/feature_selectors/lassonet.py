@@ -5,20 +5,21 @@ from feature_selectors.base_models import BaseEmbeddedFeatureSelector
 
 
 class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
+    DEFAULT_HIDDEN_DIMS = (32, 32, 32)
+    DEFAULT_M = 10
+    DEFAULT_PATH_MULTIPLIER = 1.02
+
     def __init__(
         self,
-        hidden_dims=None,
-        M=None,
-        path_multiplier=None,
         n_features=None,
+        hidden_dims=None,
+        path_multiplier=None,
+        M=None,
         **kwargs
     ):
-        if hidden_dims is None:
-            hidden_dims = (128, 64, 32)
-        if M is None:
-            M = 10
-        if path_multiplier is None:
-            path_multiplier = 1.02
+        hidden_dims = tuple(hidden_dims) if hidden_dims is not None else self.DEFAULT_HIDDEN_DIMS
+        M = M if M is not None else self.DEFAULT_M
+        path_multiplier = path_multiplier if path_multiplier is not None else self.DEFAULT_PATH_MULTIPLIER
 
         if not isinstance(hidden_dims, tuple):
             hidden_dims = tuple(hidden_dims)

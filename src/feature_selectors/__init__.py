@@ -1,3 +1,4 @@
+from .cancelout import CancelOutFeatureSelector
 from .decision_tree import DecisionTreeFeatureSelector
 from .kruskall_wallis_filter import KruskalWallisFeatureSelector
 from .lasso import LassoFeatureSelector
@@ -17,6 +18,7 @@ from .svm_genetic_algorithm import SVMGAFeatureSelector
 from .svm_rfe import SVMRFE
 
 __all__ = [
+    CancelOutFeatureSelector,
     DecisionTreeFeatureSelector,
     KruskalWallisFeatureSelector,
     LassoFeatureSelector,

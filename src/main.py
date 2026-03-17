@@ -1,7 +1,8 @@
 from multiprocessing import Pool, Lock
 import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # disables oneDNN optimizations messages
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0=all, 1=INFO, 2=WARNING, 3=ERROR
 import warnings
-
 from sklearn.exceptions import ConvergenceWarning, UndefinedMetricWarning
 
 from data.shared_datasets import SharedDatasets
@@ -17,7 +18,12 @@ from evaluation.results_execution_time import ExecutionTimesAggregator
 
 from multiprocessing import cpu_count
 from time import time
-
+warnings.filterwarnings(
+    "ignore",
+    message="TensorFlow GPU support is not available on native Windows.*",
+    module="tensorflow.*"
+)
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="tensorflow.*")
 warnings.simplefilter(action='ignore', category=DeprecationWarning)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=ConvergenceWarning)
@@ -49,23 +55,17 @@ def main():
     datasets_relative_paths = {
             # Xor Dataset
             'xor_500samples_50features': 'xor/xor_500samples_50features.csv',
+            'friedman1_1000samples_128features': 'friedman/friedman1_1000samples_128features.csv',
 
             # Cumida Datasets
             'Liver_GSE22405': 'cumida/Liver_GSE22405.csv',
             'Prostate_GSE6919_U95C': 'cumida/Prostate_GSE6919_U95C.csv',
-            'Breast_GSE70947': 'cumida/Breast_GSE70947.csv',
-            'Renal_GSE53757': 'cumida/Renal_GSE53757.csv',
-            'Colorectal_GSE44861': 'cumida/Colorectal_GSE44861.csv',
 
             # Synthetic Datasets
             'synth_100samples_5000features_50informative':
                 'synthetic/synth_100samples_5000features_50informative.csv',
             'synth_100samples_5000features_50informative_50redundant':
                 'synthetic/synth_100samples_5000features_50informative_50redundant.csv',
-            'synth_100samples_5000features_50informative_50redundant_50repeated':
-                'synthetic/synth_100samples_5000features_50informative_50redundant_50repeated.csv',
-            'synth_100samples_5000features_50informative_50repeated':
-                'synthetic/synth_100samples_5000features_50informative_50repeated.csv',
         }
 
     # Dataset loading and shared memory preparation
@@ -88,7 +88,7 @@ def main():
         ResultsWritter.write_dataframe(scoring, f'{scoring_filename}-complete', results_path)
 
     # Stability analysis of feature selection methods
-    if mode in ['all', 'stability']:
+    if mode in ['stability']:
         try:
             alg_stab_sum, alg_stab = ResultsStability.summarized_algorithms_stability(
                 selection_results_path, sampling='bootstrap', return_complete=True, verbose = verbose, n_workers = num_workers
@@ -109,7 +109,7 @@ def main():
         except Exception as e:
             print(f"Could not run data stability evaluation. Reason: {e}")
 
-    if mode in ['all', 'determinism']:
+    if mode in ['determinism']:
         try:
             alg_det_sum, alg_det = ResultsStability.summarized_algorithms_stability(
                 selection_results_path, sampling='none', return_complete=True, verbose = verbose, n_workers = num_workers

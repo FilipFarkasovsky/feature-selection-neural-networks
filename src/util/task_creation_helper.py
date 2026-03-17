@@ -5,6 +5,7 @@ from itertools import product, chain
 
 from task.model import Task
 from feature_selectors import (
+    CancelOutFeatureSelector,
     DecisionTreeFeatureSelector,
     KruskalWallisFeatureSelector,
     LassoFeatureSelector,
@@ -26,10 +27,11 @@ from feature_selectors import (
 
 
 feature_selectors = {
+    "Cancelout": CancelOutFeatureSelector,
     "DecisionTree": DecisionTreeFeatureSelector,
     "KruskallWallisFilter": KruskalWallisFeatureSelector,
     "Lasso": LassoFeatureSelector,
-    "LassoNetFeatureSelector": LassoNetFeatureSelector,
+    "LassoNet": LassoNetFeatureSelector,
     "LinearSVM": LinearSVMFeatureSelector,
     "LogisticRegressionGeneticAlgorithm": LRGAFeatureSelector,
     "LRFowardSelection": LRForwardFeatureSelector,

@@ -19,8 +19,35 @@
                 "sample_runs": 0
             },
             {
-                "name": "LassoNetFeatureSelector",
-                "params": [[[32, 32, 32], null, null, 50]],
+                "name": "LassoNet",
+                "params": [[50, [10, 10, 10]]],
+                "runs": 1,
+                "sample_runs": 0
+            },           
+            {
+                "name": "Cancelout",
+                "params": [[50, [32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
+            }
+        ]
+    },
+    {
+        "description": "Test that should run every algorithm once",
+        "run_once": false,
+        "datasets": [
+            "friedman1_1000samples_128features"
+        ],
+        "algorithms": [
+            {
+                "name": "LassoNet",
+                "params": [[50, [10, 10, 10]]],
+                "runs": 1,
+                "sample_runs": 0
+            },           
+            {
+                "name": "Cancelout",
+                "params": [[128, [64, 32, 64, 12]]],
                 "runs": 1,
                 "sample_runs": 0
             }

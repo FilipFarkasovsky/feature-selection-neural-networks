@@ -71,7 +71,7 @@ class DataLoader:
     def load(
         self,
         path: str,
-        targets: List[str] = ['type', 'class'],
+        targets: List[str] = ['type', 'class','target'],
         to_drop: List[str] = [],
         check_columns: bool = False,
         ret_col_names: bool = True
