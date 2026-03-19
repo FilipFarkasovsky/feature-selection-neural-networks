@@ -23,7 +23,8 @@ from feature_selectors import (
     SVMForwardFeatureSelector,
     SVMGAFeatureSelector,
     SVMRFE,
-    Deeppink
+    Deeppink,
+    FSNetFeatureSelector
 )
 
 
@@ -34,6 +35,7 @@ feature_selectors = {
     "Lasso": LassoFeatureSelector,
     "LassoNet": LassoNetFeatureSelector,
     "Deeppink": Deeppink,
+    "FSNet" : FSNetFeatureSelector,
     "LinearSVM": LinearSVMFeatureSelector,
     "LogisticRegressionGeneticAlgorithm": LRGAFeatureSelector,
     "LRFowardSelection": LRForwardFeatureSelector,

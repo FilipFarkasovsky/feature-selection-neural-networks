@@ -22,7 +22,7 @@
 import numpy as np
 import torch
 
-from nn_models.utils import TrainingSet
+from .utils import TrainingSet
 
 
 def init_weights(m):
@@ -214,7 +214,7 @@ class FSNet(torch.nn.Module):
         self.decoder = Decoder(n_selected, n_selected)
         self.reconstruction = Reconstruction(n_selected, n_bins, n_input)
 
-    def fit(self, X, y, n_epochs=2000, batch_size=64, _lambda=10, weight_decay=1e-6):
+    def fit(self, X, y, n_epochs=500, batch_size=32, _lambda=10, weight_decay=1e-6):
 
         # Initialize weight predictors
         U = FSNet.compute_u(X, n_bins=self.n_bins)
@@ -231,7 +231,7 @@ class FSNet(torch.nn.Module):
             criterion = torch.nn.NLLLoss(reduction='mean')
         optimizer = torch.optim.Adam(self.parameters(), lr=0.005, weight_decay=weight_decay)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='min', factor=0.9, patience=10, verbose=False, threshold=0.0001,
+            optimizer, mode='min', factor=0.9, patience=10, threshold=0.0001,
             threshold_mode='rel', cooldown=5, min_lr=1e-5, eps=1e-08)
 
         for e in range(n_epochs):
@@ -246,19 +246,19 @@ class FSNet(torch.nn.Module):
 
                 # Select a subset of features
                 X_subset = self.selector.forward(_X)
-                assert not np.any(np.isnan(X_subset.data.numpy()))
+                assert not torch.isnan(X_subset).any()
 
                 # Predict the target variable from the selected subset of features
                 X_latent = self.encoder.forward(X_subset)
                 assert not np.any(np.isnan(X_latent.data.numpy()))
                 y_hat = self.model.forward(X_latent)
-                assert not np.any(np.isnan(y_hat.data.numpy()))
+                assert not torch.isnan(X_latent).any()
 
                 # Reconstruct the input data
                 X_reconstructed = self.decoder.forward(X_latent)
-                assert not np.any(np.isnan(X_reconstructed.data.numpy()))
+                assert not torch.isnan(y_hat).any()
                 X_reconstructed = self.reconstruction.forward(X_reconstructed)
-                assert not np.any(np.isnan(X_reconstructed.data.numpy()))
+                assert not torch.isnan(X_reconstructed).any()
 
                 # Compute loss function
                 if self.n_classes > 2:

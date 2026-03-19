@@ -30,9 +30,15 @@
                 "runs": 1,
                 "sample_runs": 0
             },
-                        {
+            {
                 "name": "Deeppink",
                 "params": [[50, [32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "FSNet",
+                "params": [[4, [32, 2, 5, 3]]],
                 "runs": 1,
                 "sample_runs": 0
             }
