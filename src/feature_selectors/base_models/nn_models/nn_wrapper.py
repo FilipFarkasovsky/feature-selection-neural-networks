@@ -328,7 +328,7 @@ class NNwrapper:
             for layer in model.children():
                 # if isinstance(layer, torch.nn.Linear) and (layer.out_features > 1):
                 if isinstance(layer, torch.nn.Linear):
-                    loss_callbacks.append(lambda: _lambda * torch.sum(torch.abs(layer.weight)))
+                    loss_callbacks.append(lambda l=layer: _lambda * torch.sum(torch.abs(l.weight)))
         else:
             raise NotImplementedError(f'Unknown neural architecture "{arch}"')
         wrapper = NNwrapper(model, n_classes)
