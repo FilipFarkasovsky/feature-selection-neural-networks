@@ -22,7 +22,7 @@
 import numpy as np
 import torch
 
-from src.utils import TrainingSet
+from nn_models.utils import TrainingSet
 
 
 def init_weights(m):

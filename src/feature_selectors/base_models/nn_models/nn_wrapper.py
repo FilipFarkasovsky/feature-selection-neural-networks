@@ -26,10 +26,10 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from src.cancelout import CancelOut
-from src.deeppink import DeepPINK
-from src.utils import TrainingSet, TestSet
-from src.sam import SharpnessAwareMinimizer
+from nn_models.cancelout import CancelOut
+from nn_models.deeppink import DeepPINK
+from nn_models.utils import TrainingSet, TestSet
+from nn_models.sam import SharpnessAwareMinimizer
 
 
 def init_weights(m):
