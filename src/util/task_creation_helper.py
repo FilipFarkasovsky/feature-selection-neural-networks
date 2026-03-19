@@ -22,7 +22,8 @@ from feature_selectors import (
     RidgeClassifierFeatureSelector,
     SVMForwardFeatureSelector,
     SVMGAFeatureSelector,
-    SVMRFE
+    SVMRFE,
+    Deeppink
 )
 
 
@@ -32,6 +33,7 @@ feature_selectors = {
     "KruskallWallisFilter": KruskalWallisFeatureSelector,
     "Lasso": LassoFeatureSelector,
     "LassoNet": LassoNetFeatureSelector,
+    "Deeppink": Deeppink,
     "LinearSVM": LinearSVMFeatureSelector,
     "LogisticRegressionGeneticAlgorithm": LRGAFeatureSelector,
     "LRFowardSelection": LRForwardFeatureSelector,

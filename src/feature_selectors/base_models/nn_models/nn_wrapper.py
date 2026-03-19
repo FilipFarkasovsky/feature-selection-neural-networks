@@ -26,10 +26,10 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from nn_models.cancelout import CancelOut
-from nn_models.deeppink import DeepPINK
-from nn_models.utils import TrainingSet, TestSet
-from nn_models.sam import SharpnessAwareMinimizer
+from .cancelout import CancelOut
+from .deeppink import DeepPINK
+from .utils import TrainingSet, TestSet
+from .sam import SharpnessAwareMinimizer
 
 
 def init_weights(m):
@@ -74,32 +74,34 @@ class Model(torch.nn.Module):
 """
 class Model(torch.nn.Module):
 
-    def __init__(self, input_size, n_classes, latent_size=58, gaussian_noise=0.7466805127272365, dropout=0.04308691548552568, n_hidden_layers=5, layer_norm=0, activation='mish'):
+    def __init__(self, input_size, n_classes, hidden_dims = None, gaussian_noise=0.7466805127272365, dropout=0.04308691548552568, layer_norm=0, activation='mish'):
         torch.nn.Module.__init__(self)
         n_out = 1 if (n_classes <= 2) else n_classes
         layers = []
         if gaussian_noise > 0:
             layers.append(GaussianNoise(gaussian_noise))
         inplace = False
-        for k in range(n_hidden_layers):
+
+        if hidden_dims is None:
+            hidden_dims = [32] * 3 
+        
+        prev_dim = input_size
+        for h_dim in hidden_dims:
 
             if dropout > 0:
                 layers.append(torch.nn.Dropout(p=dropout, inplace=inplace))
 
-            if k == 0:
-                layers.append(torch.nn.Linear(input_size, latent_size))
-            else:
-                layers.append(torch.nn.Linear(latent_size, latent_size))
+            layers.append(torch.nn.Linear(prev_dim, h_dim))
 
             if layer_norm:
-                layers.append(torch.nn.LayerNorm(latent_size))
+                layers.append(torch.nn.LayerNorm(h_dim))
 
             if activation == 'relu':
                 layers.append(torch.nn.ReLU(inplace=inplace))
             elif activation == 'leakyrelu':
                 layers.append(torch.nn.LeakyReLU(0.2, inplace=inplace))
             elif activation == 'prelu':
-                layers.append(torch.nn.PReLU(latent_size))
+                layers.append(torch.nn.PReLU(h_dim))
             elif activation == 'tanh':
                 layers.append(torch.nn.Tanh())
             elif activation == 'sigmoid':
@@ -110,8 +112,10 @@ class Model(torch.nn.Module):
                 layers.append(torch.nn.SELU(inplace=inplace))
             else:
                 layers.append(torch.nn.Hardswish(inplace=inplace))
+            
+            prev_dim = h_dim
 
-        layers.append(torch.nn.Linear(latent_size, n_out))
+        layers.append(torch.nn.Linear(prev_dim, n_out))
 
         self.layers = torch.nn.Sequential(*layers)
         self.apply(init_weights)
@@ -122,10 +126,10 @@ class Model(torch.nn.Module):
 
 class ModelWithCancelOut(torch.nn.Module):
 
-    def __init__(self, input_size, n_classes, latent_size=16, cancel_out_activation='sigmoid'):
+    def __init__(self, input_size, n_classes, hidden_dims = None, cancel_out_activation='sigmoid'):
         torch.nn.Module.__init__(self)
         self.cancel_out = CancelOut(input_size, activation=cancel_out_activation)
-        self.model = Model(input_size, n_classes, latent_size=latent_size)
+        self.model = Model(input_size, n_classes, hidden_dims = hidden_dims)
 
     def forward(self, x):
         x = self.cancel_out(x)
@@ -198,7 +202,7 @@ class NNwrapper:
             optimizer = SharpnessAwareMinimizer(self.model.parameters(), optimizer_class, lr=learning_rate, weight_decay=weight_decay, adaptive=True)
 
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='min', factor=0.9, patience=10, verbose=False, threshold=0.0001,
+            optimizer, mode='min', factor=0.9, patience=10, threshold=0.0001,
             threshold_mode='rel', cooldown=5, min_lr=1e-5, eps=1e-08)
 
         n_epochs_without_improvement = 0
@@ -309,10 +313,10 @@ class NNwrapper:
         return np.mean(np.abs(scores), axis=0)
 
     @staticmethod
-    def create(dataset_name, n_input, n_classes, arch='nn'):
+    def create(n_input, n_classes, arch='nn', hidden_dims = None):
         loss_callbacks = []
         if arch == 'nn':
-            model = Model(n_input, n_classes)
+            model = Model(n_input, n_classes, hidden_dims = hidden_dims)
         elif arch == 'cancelout-sigmoid':
             model = ModelWithCancelOut(n_input, n_classes, cancel_out_activation='sigmoid')
             loss_callbacks.append(lambda: model.cancel_out.weight_loss())
@@ -320,7 +324,7 @@ class NNwrapper:
             model = ModelWithCancelOut(n_input, n_classes, cancel_out_activation='softmax')
         elif arch == 'deeppink':
             _lambda = 0.05 * np.sqrt(2.0 * np.log(n_input) / 1000)
-            model = DeepPINK(Model(n_input, n_classes), n_input)
+            model = DeepPINK(Model(n_input, n_classes, hidden_dims=hidden_dims), n_input)
             for layer in model.children():
                 # if isinstance(layer, torch.nn.Linear) and (layer.out_features > 1):
                 if isinstance(layer, torch.nn.Linear):

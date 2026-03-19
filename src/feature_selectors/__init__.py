@@ -3,6 +3,7 @@ from .decision_tree import DecisionTreeFeatureSelector
 from .kruskall_wallis_filter import KruskalWallisFeatureSelector
 from .lasso import LassoFeatureSelector
 from .lassonet import LassoNetFeatureSelector
+from .deeppink import Deeppink
 from .linear_svm import LinearSVMFeatureSelector
 from .logistic_regression_forward_selector import LRForwardFeatureSelector
 from .logistic_regression_genetic_algorithm import LRGAFeatureSelector
@@ -23,6 +24,7 @@ __all__ = [
     KruskalWallisFeatureSelector,
     LassoFeatureSelector,
     LassoNetFeatureSelector,
+    Deeppink,
     LinearSVMFeatureSelector,
     LRForwardFeatureSelector,
     LRGAFeatureSelector,

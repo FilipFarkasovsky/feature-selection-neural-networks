@@ -1,67 +1,57 @@
 import numpy as np
-import torch
+from sklearn.preprocessing import label_binarize
 
+from feature_selectors.base_models.base_selector import BaseSelector, ResultType
+from feature_selectors.base_models.nn_models.nn_wrapper import NNwrapper
 
-class LocallyConnected1d(torch.nn.Module):
+from sklearn.preprocessing import StandardScaler
 
-    def __init__(self, n_filters, kernel_size, bias=True):
-        torch.nn.Module.__init__(self)
-        self.n_filters = n_filters
-        self.kernel_size = kernel_size
-        weight = torch.zeros((self.n_filters, self.kernel_size), requires_grad=True).float()
-        self.weight = torch.nn.Parameter(weight)
-        if bias:
-            bias = torch.zeros(self.n_filters, requires_grad=True).float()
-            self.bias = torch.nn.Parameter(bias)
-        else:
-            self.bias = None
-        self.init_weights()
+class Deeppink(BaseSelector):
+    result_type = ResultType.WEIGHTS
+    DEFAULT_HIDDEN_DIMS = (32, 32, 32)
 
-    def forward(self, X):
-        assert len(X.size()) == 3
-        w = self.weight.unsqueeze(0)
-        X = torch.sum(X * w, axis=2)
-        if self.bias is not None:
-            X = X + self.bias.unsqueeze(0)
-        return X.unsqueeze(2)
+    def __init__(
+        self,
+        n_features=None,
+        hidden_dims=None,
+        **kwargs
+    ):
+        super().__init__(n_features)
+        self.hidden_dims = tuple(hidden_dims) if hidden_dims is not None else self.DEFAULT_HIDDEN_DIMS
+        
+        if not isinstance(hidden_dims, tuple):
+            self.hidden_dims = tuple(hidden_dims)
+        
+    def fit(self, X, y, **kwargs):
+        n_classes = len(set(y))
 
-    def init_weights(self):
-        self.weight.data.fill_(0.1)
-        if self.bias is not None:
-            self.bias.data.fill_(0)
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
 
+        # Estimate covariance
+        Sigma = np.cov(X, rowvar=False)
+        # Choose s (diagonal matrix) smaller than smallest eigenvalue of Sigma
+        eigvals = np.linalg.eigvals(Sigma)
+        s = np.min(eigvals) * np.eye(X.shape[1])
+        # Cholesky decomposition
+        L = np.linalg.cholesky(2*s - s @ np.linalg.inv(Sigma) @ s)
+        # Generate knockoffs
+        X_knock = X - X @ np.linalg.inv(Sigma) @ s + np.random.randn(*X.shape) @ L.T
 
-class DeepPINK(torch.nn.Module):
+        X_augmented = np.empty((X.shape[0], X.shape[1], 2))
+        X_augmented[:, :, 0] = X
+        X_augmented[:, :, 1] = X_knock
 
-    def __init__(self, model, n_input):
-        torch.nn.Module.__init__(self)
-        self.n_input = n_input
-        self.lc1 = LocallyConnected1d(n_input, 2)
-        self.lc2 = LocallyConnected1d(n_input, 1)
-        torch.nn.init.xavier_normal_(self.lc2.weight)
-        self.model = model
+        wrapper = NNwrapper.create(X.shape[1], n_classes, arch='deeppink', hidden_dims=self.hidden_dims)
 
-    def forward(self, X):
-        X = self.lc1(X)
-        X = self.lc2(X)
-        X = torch.squeeze(X, 2)
-        X = self.model(X)
-        return X
+        wrapper.fit(X_augmented, y)
+        self._weights = wrapper.model.get_weights().astype(float).tolist()
+        self._rank = np.argsort(self._weights)[::-1]
 
-    def get_weights(self):
-        W0 = self.lc2.weight.data.numpy()
-        W_acc = None
-        W = []
-        for layer in self.model.layers:
-            if isinstance(layer, torch.nn.Linear):
-                W.append(layer.weight.data.numpy().T)
-                W_acc = W[-1] if (W_acc is None) else np.dot(W_acc, W[-1])
-        w = np.squeeze(W0 * W_acc)
-        if len(w.shape) == 1:
-            z = self.lc1.weight.data.numpy()[:, 0] * w
-            z_tilde = self.lc1.weight.data.numpy()[:, 1] * w
-            return z ** 2. - z_tilde ** 2.
-        else:
-            z = self.lc1.weight.data.numpy()[:, 0, np.newaxis] * w
-            z_tilde = self.lc1.weight.data.numpy()[:, 1, np.newaxis] * w
-            return np.mean(z ** 2. - z_tilde ** 2., axis=1)
+        if self._n_features is not None:
+            self._selected = self._rank[:self._n_features]
+            self._support_mask = np.zeros(X.shape[1])
+            self._support_mask[self._rank] = True
+
+        self._fitted = True
+        return self

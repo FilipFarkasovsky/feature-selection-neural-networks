@@ -15,8 +15,8 @@ class CancelOutFeatureSelector(BaseEmbeddedFeatureSelector):
     DEFAULT_LAMBDA_2 = 0.1
     DEFAULT_ACTIVATION = "sigmoid"
     DEFAULT_CANCEL_OUT_LOSS = True
-    DEFAULT_BATCH_SIZE = 50
-    DEFAULT_EPOCHS = 200
+    DEFAULT_BATCH_SIZE = 35
+    DEFAULT_EPOCHS = 100
 
     def __init__(
         self,
@@ -73,7 +73,7 @@ class CancelOutModel:
         epochs=50,
         batch_size=32,
         hidden_layers=None,
-        verbose=1
+        verbose=0
     ):
         self.input_dim = input_dim
         self.activation = activation
