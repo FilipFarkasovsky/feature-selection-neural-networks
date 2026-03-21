@@ -34,7 +34,7 @@ class BaseEmbeddedFeatureSelector(BaseSelector):
         if self._n_features is not None:
             self._selected = self._rank[:self._n_features]
             self._support_mask = np.zeros(X.shape[1])
-            self._support_mask[self._rank] = True
+            self._support_mask[self._selected] = True
 
         self._fitted = True
         return self

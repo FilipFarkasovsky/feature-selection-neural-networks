@@ -41,6 +41,12 @@
                 "params": [[4, [32, 2, 5, 3]]],
                 "runs": 1,
                 "sample_runs": 0
+            },
+            {
+                "name": "CAE",
+                "params": [[2, [32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
             }
         ]
     }

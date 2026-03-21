@@ -24,30 +24,33 @@ from feature_selectors import (
     SVMGAFeatureSelector,
     SVMRFE,
     Deeppink,
+    CAEFeatureSelector,
     FSNetFeatureSelector
 )
 
 
 feature_selectors = {
+    "SVMGeneticAlgorithm": SVMGAFeatureSelector,
+    "LogisticRegressionGeneticAlgorithm": LRGAFeatureSelector,
+    "ReliefFGeneticAlgorithm": ReliefFGAFeatureSelector,
+    "MRMRGeneticAlgorithm": MRMRGAFeatureSelector,
+
     "Cancelout": CancelOutFeatureSelector,
     "DecisionTree": DecisionTreeFeatureSelector,
     "KruskallWallisFilter": KruskalWallisFeatureSelector,
     "Lasso": LassoFeatureSelector,
     "LassoNet": LassoNetFeatureSelector,
     "Deeppink": Deeppink,
+    "CAE": CAEFeatureSelector,
     "FSNet" : FSNetFeatureSelector,
     "LinearSVM": LinearSVMFeatureSelector,
-    "LogisticRegressionGeneticAlgorithm": LRGAFeatureSelector,
     "LRFowardSelection": LRForwardFeatureSelector,
     "MRMR": MRMRFeatureSelector,
-    "MRMRGeneticAlgorithm": MRMRGAFeatureSelector,
     "MutualInformationFilter": MutualInformationFeatureSelector,
     "RandomForest": RandomForestFeatureSelector,
     "ReliefFFeatureSelector": ReliefFFeatureSelector,
-    "ReliefFGeneticAlgorithm": ReliefFGAFeatureSelector,
     "RidgeClassifier": RidgeClassifierFeatureSelector,
     "SVMFowardSelection": SVMForwardFeatureSelector,
-    "SVMGeneticAlgorithm": SVMGAFeatureSelector,
     "SVMRFE": SVMRFE,
 }
 

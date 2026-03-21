@@ -207,8 +207,7 @@ class NNwrapper:
 
         n_epochs_without_improvement = 0
         state_dict_history = []
-        pbar = tqdm.tqdm(range(epochs))
-        for e in pbar:
+        for e in range(epochs):
 
             # Training error
             total_error = 0
@@ -272,7 +271,6 @@ class NNwrapper:
                     else:
                         n_epochs_without_improvement = 0
 
-                pbar.set_description(str(total_error))
 
         # Restore best parameters
         if val > 0:

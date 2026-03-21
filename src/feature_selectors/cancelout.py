@@ -122,7 +122,6 @@ class CancelOutModel:
     def get_weights_mask(self):
 
         w = self.cancelout_layer.get_weights()[0]
-        print(w)
         if self.activation == "sigmoid":
             return tf.sigmoid(w).numpy()
 

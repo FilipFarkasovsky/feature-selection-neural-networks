@@ -4,6 +4,7 @@ from .kruskall_wallis_filter import KruskalWallisFeatureSelector
 from .lasso import LassoFeatureSelector
 from .lassonet import LassoNetFeatureSelector
 from .deeppink import Deeppink
+from .cae import CAEFeatureSelector
 from .fsnet import FSNetFeatureSelector
 from .linear_svm import LinearSVMFeatureSelector
 from .logistic_regression_forward_selector import LRForwardFeatureSelector
@@ -26,6 +27,7 @@ __all__ = [
     LassoFeatureSelector,
     LassoNetFeatureSelector,
     Deeppink,
+    CAEFeatureSelector,
     FSNetFeatureSelector,
     LinearSVMFeatureSelector,
     LRForwardFeatureSelector,
