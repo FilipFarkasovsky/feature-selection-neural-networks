@@ -5,7 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0=all, 1=INFO, 2=WARNING, 3=ERROR
 import warnings
 from sklearn.exceptions import ConvergenceWarning, UndefinedMetricWarning
 
-from data.shared_datasets import SharedDatasets
+from data.dataset_manager import DatasetManager
 from results.writter import ResultsWritter
 from task.runner import TaskRunner
 from util.shared_resources import SharedResources
@@ -69,7 +69,7 @@ def main():
         }
 
     # Dataset loading and shared memory preparation
-    datasets = SharedDatasets(datasets_folder_path, datasets_relative_paths, normalize=True)
+    datasets = DatasetManager(datasets_folder_path, datasets_relative_paths, normalize=True)
 
     # Feature selection stage
     if mode in ['all', 'select']:

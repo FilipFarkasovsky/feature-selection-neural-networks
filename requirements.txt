@@ -16,6 +16,5 @@ captum
 shap
 xlrd
 optuna
-concrete_autoencoder
 python_mnist
 

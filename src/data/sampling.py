@@ -10,18 +10,12 @@ class SamplingType(Enum):
     BOOTSTRAP = 'bootstrap'
     PERCENT_90 = 'percent90'
 
-
 def bootstrap(X, y=None):
-    n_samples, _ = X.shape
-    random.seed(time())
-    np.random.seed(random.randint(0, int(time())))
-    selected = np.random.choice(n_samples, n_samples)
-    return (X[selected], y[selected]) if y is not None else X[selected]
-
+    n = X.shape[0]
+    idx = np.random.choice(n, n)
+    return (X[idx], y[idx]) if y is not None else X[idx]
 
 def percent90(X, y=None):
-    n_samples, _ = X.shape
-    random.seed(time())
-    np.random.seed(random.randint(0, int(time())))
-    selected = np.random.choice(n_samples, int(n_samples * 0.9), replace=False)
-    return (X[selected], y[selected]) if y is not None else X[selected]
+    n = X.shape[0]
+    idx = np.random.choice(n, int(n * 0.9), replace=False)
+    return (X[idx], y[idx]) if y is not None else X[idx]
