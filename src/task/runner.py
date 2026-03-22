@@ -23,67 +23,30 @@ class TaskRunner():
         self._verbose = verbose
         self._output_file_name = output_file_name
 
-    def _print_start(self, name, dataset_name):
-        if self._verbose > 1:
-            print(f"{CYAN_COLOR}Starting task {name} for dataset: {dataset_name}{DEFAULT_COLOR}")
-        elif self._verbose > 0:
-            print(f"[Start] Task {name} for dataset: {dataset_name}")
-
-    def _print_end(self, name, dataset_name, time):
-        if self._verbose > 1:
-            print(
-                f"{GREEN_COLOR}Task {name} done! written results for "
-                f"{dataset_name}{YELLOW_COLOR} [{time:0.2f}s]{DEFAULT_COLOR}"
-            )
-        elif self._verbose > 0:
-            print(f"[Done] task {name}! written results for {dataset_name} [{time:0.2f}s]")
-
-    def _error(self, text):
-        if self._verbose > 1:
-            print(f"{RED_COLOR}{text}{DEFAULT_COLOR}")
-            tb_string = traceback.format_exc(limit=5)
-            print(f"{YELLOW_COLOR}{tb_string}{DEFAULT_COLOR}", end='')
-        else:
-            print(text)
-            tb_string = traceback.format_exc(limit=5)
-            print(tb_string, end='')
+    def _log(self, msg, color=DEFAULT_COLOR, level=1):
+        if self._verbose >= level:
+            print(f"{color}{msg}{DEFAULT_COLOR}")
 
     def run(self, task: Task):
-        self._print_start(task.name, task.dataset_name)
+        self._log(f"Starting task {task.name} for dataset {task.dataset_name}", CYAN_COLOR)
         try:
             shared_resources = SharedResources.get()
-            datasets = shared_resources['datasets']
-            lock = shared_resources['lock']
-        except Exception:
-            self._print("Failed to get shared resources!")
-            return
-
-        try:
+            datasets, lock = shared_resources['datasets'], shared_resources['lock']
+            
             dataset = datasets.get_dataset(task.dataset_name)
-            X = dataset.get_instances()
-            y = dataset.get_classes()
+            X, y = dataset.get_instances(), dataset.get_classes()
 
-            if task.sampling == 'bootstrap':
+            if task.sampling == 'bootstrap': 
                 X, y = bootstrap(X, y)
             elif task.sampling == 'percent90':
                 X, y = percent90(X, y)
-        except Exception:
-            self._error(
-                f"Failed to load dataset `{task.dataset_name}` for task `{task.name}`!"
-            )
-            return
 
-        fs = task.feature_selector
+            fs = task.feature_selector
 
-        try:
             start = time()
             fs.fit(X, y)
             time_spent = time() - start
-        except Exception:
-            self._error(f"Failed to fit model for dataset `{task.dataset_name}` and task `{task.name}`!")
-            return
 
-        try:
             if fs.result_type is ResultType.WEIGHTS:
                 values = list(fs.get_weights())
             elif fs.result_type is ResultType.RANK:
@@ -105,11 +68,10 @@ class TaskRunner():
                 values=json.dumps(values)
             )
 
-            lock.acquire()
-            try:
+            with lock:
                 ResultsWritter.write_result(result, self._output_file_name, self._results_path)
-                self._print_end(task.name, task.dataset_name, time_spent)
-            finally:
-                lock.release()
-        except Exception:
-            self._error(f"Failed to save results task `{task.name}` and dataset `{task.dataset_name}`!")
+                self._log(f"Task {task.name} done! [{time_spent:.2f}s]", GREEN_COLOR)
+            
+        except Exception as e:
+            self._log(f"Error in task {task.name} for dataset {task.dataset_name}: {e}", RED_COLOR, level=0)
+            self._log(traceback.format_exc(limit=5), YELLOW_COLOR, level=1)

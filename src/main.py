@@ -10,7 +10,7 @@ from results.writter import ResultsWritter
 from task.runner import TaskRunner
 from util.shared_resources import SharedResources
 from util.command_line import get_args
-from util.task_creation_helper import tasks_from_presets
+from task.task_factory import tasks_from_presets
 
 from evaluation.results_scorer import ResultsScorer
 from evaluation.results_stability import ResultsStability
@@ -75,7 +75,7 @@ def main():
     if mode in ['all', 'select']:
         task_runner = TaskRunner(results_path, selection_filename, verbose=verbose)
         with Pool(num_workers, SharedResources.set_resources, initargs=(datasets, Lock())) as pool:
-            pool.map(task_runner.run, tasks_from_presets(presets, presets_runs, verbose=verbose))
+            pool.map(task_runner.run, tasks_from_presets(presets, verbose=verbose))
 
 
     # Scoring of feature selection results

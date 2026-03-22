@@ -25,7 +25,7 @@ class DatasetManager:
             try:
                 X, y, cols = self._dataloader.load_csv(path, to_drop=['samples'])
                 self._datasets[name] = Dataset(name, X, y, cols, shared = self.shared)               
-                print(f"{GREEN_COLOR}New dataset loaded successfully. Name of dataset: {name}{DEFAULT_COLOR}")
+                print(f"{GREEN_COLOR}New dataset loaded successfully: {name}{DEFAULT_COLOR}")
             except Exception as e:
                 print(f"{RED_COLOR}Could not load {path}: {e}{DEFAULT_COLOR}")
 

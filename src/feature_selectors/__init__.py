@@ -20,26 +20,27 @@ from .svm_forward_selector import SVMForwardFeatureSelector
 from .svm_genetic_algorithm import SVMGAFeatureSelector
 from .svm_rfe import SVMRFE
 
-__all__ = [
-    CancelOutFeatureSelector,
-    DecisionTreeFeatureSelector,
-    KruskalWallisFeatureSelector,
-    LassoFeatureSelector,
-    LassoNetFeatureSelector,
-    Deeppink,
-    CAEFeatureSelector,
-    FSNetFeatureSelector,
-    LinearSVMFeatureSelector,
-    LRForwardFeatureSelector,
-    LRGAFeatureSelector,
-    MRMRGAFeatureSelector,
-    MRMRFeatureSelector,
-    MutualInformationFeatureSelector,
-    RandomForestFeatureSelector,
-    ReliefFFeatureSelector,
-    ReliefFGAFeatureSelector,
-    RidgeClassifierFeatureSelector,
-    SVMForwardFeatureSelector,
-    SVMGAFeatureSelector,
-    SVMRFE
-]
+feature_selectors = {
+    "SVMGeneticAlgorithm": SVMGAFeatureSelector,
+    "LogisticRegressionGeneticAlgorithm": LRGAFeatureSelector,
+    "ReliefFGeneticAlgorithm": ReliefFGAFeatureSelector,
+    "MRMRGeneticAlgorithm": MRMRGAFeatureSelector,
+
+    "Cancelout": CancelOutFeatureSelector,
+    "DecisionTree": DecisionTreeFeatureSelector,
+    "KruskallWallisFilter": KruskalWallisFeatureSelector,
+    "Lasso": LassoFeatureSelector,
+    "LassoNet": LassoNetFeatureSelector,
+    "Deeppink": Deeppink,
+    "CAE": CAEFeatureSelector,
+    "FSNet" : FSNetFeatureSelector,
+    "LinearSVM": LinearSVMFeatureSelector,
+    "LRFowardSelection": LRForwardFeatureSelector,
+    "MRMR": MRMRFeatureSelector,
+    "MutualInformationFilter": MutualInformationFeatureSelector,
+    "RandomForest": RandomForestFeatureSelector,
+    "ReliefFFeatureSelector": ReliefFFeatureSelector,
+    "RidgeClassifier": RidgeClassifierFeatureSelector,
+    "SVMFowardSelection": SVMForwardFeatureSelector,
+    "SVMRFE": SVMRFE,
+}
