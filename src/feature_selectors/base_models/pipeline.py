@@ -52,7 +52,7 @@ class FeatureSelectorPipeline(BaseSelector):
         self._support_mask[selected_idx] = True
 
         if self.result_type is ResultType.WEIGHTS:
-            self._weights = np.zeros(n_features, dtype=np.bool)
+            self._weights = np.zeros(n_features, dtype=bool)
             self._weights[selected_idx] = fs.get_weights()
             self._rank = np.argsort(self._weights)[::-1]
 

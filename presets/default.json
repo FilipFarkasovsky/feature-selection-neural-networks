@@ -61,10 +61,7 @@
         "run_once": true,
         "datasets": [
             "Liver_GSE22405",
-            "Prostate_GSE6919_U95C",
-            "Breast_GSE70947",
-            "Renal_GSE53757",
-            "Colorectal_GSE44861"
+            "Prostate_GSE6919_U95C"
         ],
         "algorithms": [
             {
@@ -239,10 +236,7 @@
         "run_once": false,
         "datasets": [
             "Liver_GSE22405",
-            "Prostate_GSE6919_U95C",
-            "Breast_GSE70947",
-            "Renal_GSE53757",
-            "Colorectal_GSE44861"
+            "Prostate_GSE6919_U95C"
         ],
         "algorithms": [
             {
@@ -393,10 +387,7 @@
         "run_once": false,
         "datasets": [
             "Liver_GSE22405",
-            "Prostate_GSE6919_U95C",
-            "Breast_GSE70947",
-            "Renal_GSE53757",
-            "Colorectal_GSE44861"
+            "Prostate_GSE6919_U95C"
         ],
         "algorithms": [
             {

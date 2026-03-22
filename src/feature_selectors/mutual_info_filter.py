@@ -1,5 +1,5 @@
 from feature_selectors.base_models.k_best import KBestFeatureSelector
-from evaluation.statistics import mutual_information
+from evaluation.measures import mutual_information
 
 
 class MutualInformationFeatureSelector(KBestFeatureSelector):

@@ -2,14 +2,11 @@ from itertools import combinations
 
 import numpy as np
 
-from evaluation.metrics import (
+from evaluation.measures import (
     jaccard_score,
     set_normalized_hamming_distance,
     dice_coefficient,
     kuncheva_index,
-)
-
-from evaluation.statistics import (
     spearmans_correlation_partial_ranked_list,
     canberra_distance_partial_ranked_list,
     pearsons_correlation_no_zeros

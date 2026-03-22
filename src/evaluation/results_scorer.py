@@ -89,22 +89,10 @@ class ResultsScorer:
         }
 
     @staticmethod
-    def _print(result, verbose = DEFAULT_VERBOSE):
-        if verbose > 1:
-            print(
-                f"{YELLOW_COLOR}Evaluated results for {GREEN_COLOR}{result['name']}\n"
-                f"{WHITE_COLOR}  dataset:{CYAN_COLOR} {result['dataset']}\n"
-                f"{WHITE_COLOR}  features:{CYAN_COLOR} {result['features']}{DEFAULT_COLOR}\n"
-                f"{WHITE_COLOR}  selected:{CYAN_COLOR} {result['selected']}{DEFAULT_COLOR}"
-            )
-        elif verbose > 0:
-            print(
-                f"Evaluated results for {result['name']}\n"
-                f"  dataset: {result['dataset']}\n"
-                f"  selected: {result['selected']}\n"
-                f"  features: {result['features']}"
-            )
-    
+    def _print(result, verbose=DEFAULT_VERBOSE):
+        print(f"Evaluated results for {result['name']}; dataset: {result['dataset']}\n"
+            f"selected: {result['selected']}, features: {result['features']}")
+
     @staticmethod
     def evaluate_subsets(datasets, subset_results):
         def evaluate(result):

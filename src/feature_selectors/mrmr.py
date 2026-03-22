@@ -1,6 +1,6 @@
 import numpy as np
 
-from evaluation.statistics import mutual_information
+from evaluation.measures import mutual_information
 from feature_selectors.base_models.base_selector import BaseSelector, ResultType
 
 
@@ -67,7 +67,7 @@ class MRMRFeatureSelector(BaseSelector):
                     f' feat {selected_idx} with mRMR: {higher_score:0.3}'
                 )
 
-        self._support_mask = np.zeros(n_features, dtype=np.bool)
+        self._support_mask = np.zeros(n_features, dtype=bool)
         self._support_mask[selected] = True
         self._selected = selected
         self._rank = selected

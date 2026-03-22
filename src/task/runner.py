@@ -74,4 +74,4 @@ class TaskRunner():
             
         except Exception as e:
             self._log(f"Error in task {task.name} for dataset {task.dataset_name}: {e}", RED_COLOR, level=0)
-            self._log(traceback.format_exc(limit=5), YELLOW_COLOR, level=1)
+            self._log(traceback.format_exc(limit=1), RED_COLOR, level=1)
