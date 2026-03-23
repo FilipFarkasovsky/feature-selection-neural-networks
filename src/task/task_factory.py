@@ -56,6 +56,19 @@ def tasks_from_presets(preset_names, category_filter=None):
             print(f"Could not load preset {name} because: {e}")
 
     final_tasks = list(chain(*tasks))
-    print(f"{YELLOW_COLOR}Generated {len(final_tasks)} tasks for {preset_names} presets!{DEFAULT_COLOR}")
+    print(f"{YELLOW_COLOR}Generated {len(final_tasks)} tasks for {preset_names} presets for methods of type:{category_filter}!{DEFAULT_COLOR}")
 
     return final_tasks
+
+def get_datasets_from_presets(preset_names):
+    dataset_names = set()
+
+    for name in preset_names:
+        _name = name if name.endswith('.json') else f'{name}.json'
+        preset = _load_preset(_name)
+
+        for config in preset:
+            for ds in config['datasets']:
+                dataset_names.add(ds)
+
+    return dataset_names

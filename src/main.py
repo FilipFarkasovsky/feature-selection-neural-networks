@@ -10,12 +10,13 @@ from results.writter import ResultsWritter
 from task.runner import TaskRunner
 from util.shared_resources import SharedResources
 from util.command_line import get_args
-from task.task_factory import tasks_from_presets
+from task.task_factory import tasks_from_presets, get_datasets_from_presets
 from itertools import chain
 
 from evaluation.results_prediction import ResultsScorer
 from evaluation.results_stability import ResultsStability
 from evaluation.results_execution_time import ExecutionTimesAggregator
+from data.datasets_config import datasets_relative_paths
 
 from multiprocessing import cpu_count
 from time import time
@@ -53,32 +54,23 @@ def main():
     stability_filename = args.stability_filename
     times_filename = args.times_filename
 
-    datasets_relative_paths = {
-            # Xor Dataset
-            'xor_500samples_50features': 'xor/xor_500samples_50features.csv',
-            'friedman1_1000samples_128features': 'friedman/friedman1_1000samples_128features.csv',
-
-            # Cumida Datasets
-            'Liver_GSE22405': 'cumida/Liver_GSE22405.csv',
-            'Prostate_GSE6919_U95C': 'cumida/Prostate_GSE6919_U95C.csv',
-
-            # Synthetic Datasets
-            'synth_100samples_5000features_50informative':
-                'synthetic/synth_100samples_5000features_50informative.csv',
-            'synth_100samples_5000features_50informative_50redundant':
-                'synthetic/synth_100samples_5000features_50informative_50redundant.csv',
-        }
-
     # Dataset loading and shared memory preparation
-    datasets = DatasetManager(datasets_folder_path, datasets_relative_paths, normalize=True)
+    used_datasets = get_datasets_from_presets(presets)
+    filtered_paths = {
+        name: path
+        for name, path in datasets_relative_paths.items()
+        if name in used_datasets
+    }
+    datasets = DatasetManager(datasets_folder_path, filtered_paths, normalize=True)
 
+    # Feature selection stage
     if mode in ['all', 'select']:
-        # Feature selection stage for classical methods
+        # FS for classical methods
         task_runner = TaskRunner(results_path, selection_filename, verbose=verbose)
         with Pool(num_workers, SharedResources.set_resources, initargs=(datasets, Lock())) as pool:
             pool.map(task_runner.run, tasks_from_presets(presets, category_filter=['classical']))
 
-        # Feature selection stage for dnn-based methods
+        # FS for dnn-based methods
         SharedResources.set_resources(datasets, Lock())
         tasks = tasks_from_presets(presets, category_filter=['dnn-based'])
         for task in tasks:
