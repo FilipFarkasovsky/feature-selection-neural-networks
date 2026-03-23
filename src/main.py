@@ -11,6 +11,7 @@ from task.runner import TaskRunner
 from util.shared_resources import SharedResources
 from util.command_line import get_args
 from task.task_factory import tasks_from_presets
+from itertools import chain
 
 from evaluation.results_prediction import ResultsScorer
 from evaluation.results_stability import ResultsStability
@@ -71,14 +72,20 @@ def main():
     # Dataset loading and shared memory preparation
     datasets = DatasetManager(datasets_folder_path, datasets_relative_paths, normalize=True)
 
-    # Feature selection stage
     if mode in ['all', 'select']:
+        # Feature selection stage for classical methods
         task_runner = TaskRunner(results_path, selection_filename, verbose=verbose)
         with Pool(num_workers, SharedResources.set_resources, initargs=(datasets, Lock())) as pool:
-            pool.map(task_runner.run, tasks_from_presets(presets, verbose=verbose))
+            pool.map(task_runner.run, tasks_from_presets(presets, category_filter=['classical']))
+
+        # Feature selection stage for dnn-based methods
+        SharedResources.set_resources(datasets, Lock())
+        tasks = tasks_from_presets(presets, category_filter=['dnn-based'])
+        for task in tasks:
+            task_runner.run(task)
 
 
-    # Scoring of feature selection results
+    # Scoring of a prediction after selecting most relevant features according to FS methods
     if mode in ['all', 'scoring']:
         selection_filename = selection_filename if selection_filename.endswith('.csv') else f'{selection_filename}.csv'
         selection_results_path = os.path.join(results_path, selection_filename)

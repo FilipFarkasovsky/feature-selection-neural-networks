@@ -39,17 +39,18 @@ def _print_preset(name, preset):
         print(f"\tDescription: {description}")
         print(f"\tDatasets:", ', '.join(config['datasets']))
 
-def tasks_from_presets(preset_names, verbose=0):
+def tasks_from_presets(preset_names, category_filter=None):
     tasks = []
     for name in preset_names:
         try:
             _name = name if name.endswith('.json') else f'{name}.json'
             preset = _load_preset(_name)
-
             _print_preset(name, preset)
 
             for config in preset:
-                tasks.append(_config_to_tasks(config))
+                config_category = config.get("category")
+                if category_filter and config_category in category_filter:
+                    tasks.append(_config_to_tasks(config))
 
         except Exception as e:
             print(f"Could not load preset {name} because: {e}")

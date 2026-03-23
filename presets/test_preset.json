@@ -2,6 +2,8 @@
     {
         "description": "Test that should run every algorithm once",
         "run_once": false,
+        "category": "dnn-based",
+        "n_informative": 2,
         "datasets": [
             "xor_500samples_50features"
         ],
