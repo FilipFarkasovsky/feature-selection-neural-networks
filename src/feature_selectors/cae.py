@@ -1,10 +1,7 @@
 import numpy as np
-from sklearn.preprocessing import label_binarize
+from sklearn.preprocessing import LabelEncoder
 
 from feature_selectors.base_models.base_selector import BaseSelector, ResultType
-from feature_selectors.base_models.nn_models.nn_wrapper import NNwrapper
-
-from .base_models.nn_models.nn_wrapper import Model
 from .base_models.nn_models.concrete_autoencoder import ConcreteAutoencoderFeatureSelector
 import keras
 
@@ -40,8 +37,9 @@ class CAEFeatureSelector(BaseSelector):
         selector = ConcreteAutoencoderFeatureSelector(
             K=2 * k, output_function=nn, start_temp=10, min_temp=0.01, num_epochs=30,
             learning_rate=0.0001, tryout_limit=1)
+        le = LabelEncoder()
+        y = le.fit_transform(y)
         selector.fit(X, y)
-
         self._selected = selector.get_support(indices=True).flatten()
         self._support_mask = np.zeros(X.shape[1])
         self._support_mask[self._selected] = True

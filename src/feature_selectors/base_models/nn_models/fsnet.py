@@ -214,7 +214,7 @@ class FSNet(torch.nn.Module):
         self.decoder = Decoder(n_selected, n_selected)
         self.reconstruction = Reconstruction(n_selected, n_bins, n_input)
 
-    def fit(self, X, y, n_epochs=500, batch_size=32, _lambda=10, weight_decay=1e-6):
+    def fit(self, X, y, n_epochs=300, batch_size=32, _lambda=10, weight_decay=1e-6):
 
         # Initialize weight predictors
         U = FSNet.compute_u(X, n_bins=self.n_bins)

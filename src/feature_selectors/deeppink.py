@@ -1,9 +1,9 @@
 import numpy as np
-from sklearn.preprocessing import label_binarize
-
+from sklearn.preprocessing import LabelEncoder
+import torch
 from feature_selectors.base_models.base_selector import BaseSelector, ResultType
-from feature_selectors.base_models.nn_models.nn_wrapper import NNwrapper
-
+from feature_selectors.base_models.nn_models.nn_wrapper import NNwrapper, Model
+from .base_models.nn_models.deeppink import DeepPINK
 from sklearn.preprocessing import StandardScaler
 
 class Deeppink(BaseSelector):
@@ -42,8 +42,20 @@ class Deeppink(BaseSelector):
         X_augmented[:, :, 0] = X
         X_augmented[:, :, 1] = X_knock
 
-        wrapper = NNwrapper.create(X.shape[1], n_classes, arch='deeppink', hidden_dims=self.hidden_dims)
+        
+        loss_callbacks = []
+        _lambda = 0.05 * np.sqrt(2.0 * np.log(X.shape[1]) / 1000)
+        model = DeepPINK(Model(X.shape[1], n_classes, hidden_dims=self.hidden_dims), X.shape[1])
+        for layer in model.children():
+            # if isinstance(layer, torch.nn.Linear) and (layer.out_features > 1):
+            if isinstance(layer, torch.nn.Linear):
+                loss_callbacks.append(lambda l=layer: _lambda * torch.sum(torch.abs(l.weight)))
+        wrapper = NNwrapper(model, n_classes)
+        for loss_callback in loss_callbacks:
+            wrapper.add_loss_callback(loss_callback)
 
+        le = LabelEncoder()
+        y = le.fit_transform(y)
         wrapper.fit(X_augmented, y)
         self._weights = wrapper.model.get_weights().astype(float).tolist()
         self._rank = np.argsort(self._weights)[::-1]

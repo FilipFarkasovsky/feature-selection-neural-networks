@@ -1,6 +1,6 @@
 import numpy as np
 from lassonet import LassoNetClassifier
-
+from sklearn.preprocessing import LabelEncoder
 from feature_selectors.base_models import BaseEmbeddedFeatureSelector
 
 
@@ -29,6 +29,7 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
             M=M,
             path_multiplier=path_multiplier,
             verbose = False,
+            n_iters = (300,100),
             **kwargs
         )
 
@@ -39,3 +40,8 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
             n_features=n_features,
             encode_classes=False
         )
+
+    def fit(self, X, y):
+        le = LabelEncoder()
+        y = le.fit_transform(y)
+        super().fit(X, y)

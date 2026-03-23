@@ -1,8 +1,7 @@
 import numpy as np
-from sklearn.preprocessing import label_binarize
+from sklearn.preprocessing import LabelEncoder
 
 from feature_selectors.base_models.base_selector import BaseSelector, ResultType
-from feature_selectors.base_models.nn_models.nn_wrapper import NNwrapper
 
 from .base_models.nn_models.nn_wrapper import Model
 from .base_models.nn_models.fsnet import FSNet
@@ -28,6 +27,8 @@ class FSNetFeatureSelector(BaseSelector):
 
         n_selected = min(self._n_features, X.shape[1])
         fsnet = FSNet(Model(n_selected, n_classes, hidden_dims=self.hidden_dims), X.shape[1], 30, n_selected, n_classes)
+        le = LabelEncoder()
+        y = le.fit_transform(y)
         fsnet.fit(X, y)
         self._weights = fsnet.get_feature_importances().astype(float).tolist()
         self._rank = np.argsort(self._weights)[::-1]

@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 from feature_selectors.base_models import BaseEmbeddedFeatureSelector
 from keras.utils import register_keras_serializable
@@ -107,10 +108,11 @@ class CancelOutModel:
         )
 
     def fit(self, X, y, **kwargs):
-
+        le = LabelEncoder()
+        _y = le.fit_transform(y)
         self.model.fit(
             X,
-            y,
+            _y,
             epochs=self.epochs,
             batch_size=self.batch_size,
             verbose=self.verbose,
