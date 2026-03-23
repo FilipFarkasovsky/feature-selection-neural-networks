@@ -7,6 +7,7 @@ from sklearn.preprocessing import minmax_scale
 
 
 from feature_selectors.base_models.base_selector import BaseSelector, ResultType
+from sklearn.preprocessing import LabelEncoder
 
 
 class GeneticAlgorithmFeatureSelector(BaseSelector):
@@ -135,12 +136,14 @@ class GeneticAlgorithmFeatureSelector(BaseSelector):
         self._X = X
         n_samples, n_features = X.shape
         self._total_features = n_features
+        self._label_encoder = LabelEncoder()
+        y_encoded = self._label_encoder.fit_transform(y)
 
         if n_features < self._n_features:
             raise ValueError("Given dataset has less features than the number that should be selected.")
 
         population = np.array(self._initial_population(n_features))
-        fitness = np.array([self._fitness_function(X[:, x], y) for x in population])
+        fitness = np.array([self._fitness_function(X[:, x], y_encoded) for x in population])
 
         num_individuals = len(population)
         self.num_individuals_ = num_individuals
@@ -177,7 +180,7 @@ class GeneticAlgorithmFeatureSelector(BaseSelector):
 
             [self._mutate(individual, n_features) for individual in offsprings]
 
-            offsprings_fitness = [self._fitness_function(X[:, x], y) for x in offsprings]
+            offsprings_fitness = [self._fitness_function(X[:, x], y_encoded) for x in offsprings]
 
             population = np.concatenate((elite, offsprings))
             fitness = np.concatenate((elite_fitness, offsprings_fitness))
@@ -187,7 +190,7 @@ class GeneticAlgorithmFeatureSelector(BaseSelector):
         self.last_generation_fitness_ = fitness
         self._selected_fitness = fitness[best_index]
         self._selected = population[best_index]
-        self._support_mask = np.zeros(self._total_features, dtype=np.bool)
+        self._support_mask = np.zeros(self._total_features, dtype=bool)
         self._support_mask[self._selected] = True
         self._fitted = True
 

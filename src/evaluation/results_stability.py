@@ -4,14 +4,57 @@ from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
+from itertools import combinations
 
 from results.loader import ResultsLoader
 from .util import rank_from_weights, keep_top_k
-from .stability import stability_for_sets, stability_for_ranks, stability_for_weights
+
+from evaluation.measures import (
+    jaccard_score,
+    set_normalized_hamming_distance,
+    dice_coefficient,
+    kuncheva_index,
+    spearmans_correlation_partial_ranked_list,
+    canberra_distance_partial_ranked_list,
+    pearsons_correlation_no_zeros
+)
 
 
 class ResultsStability:
     DEFAULT_EVALUATE_AT = [5, 10, 20, 50, 100, 200]
+
+    @staticmethod
+    def averaged_stability(selections, metric, as_type=lambda x: x, *args, **kwargs):
+        if len(selections) == 1:
+            return metric(as_type(selections[0]), as_type(selections[0]), *args, **kwargs)
+
+        return np.mean([
+            metric(as_type(s1), as_type(s2), *args, **kwargs)
+            for s1, s2
+            in combinations(selections, 2)
+        ])
+
+    @staticmethod
+    def stability_for_sets(selections, num_features):
+        return {
+            'jaccard': ResultsStability.averaged_stability(selections, jaccard_score, set),
+            'hamming': ResultsStability.averaged_stability(selections, set_normalized_hamming_distance, set),
+            'dice': ResultsStability.averaged_stability(selections, dice_coefficient, set),
+            'kuncheva': ResultsStability.averaged_stability(selections, kuncheva_index, set, num_features)
+        }
+
+    @staticmethod
+    def stability_for_ranks(selections, num_features):
+        return {
+            **ResultsStability.stability_for_sets(selections, num_features),
+            'spearman': ResultsStability.averaged_stability(selections, spearmans_correlation_partial_ranked_list, np.array),
+            'canberra': ResultsStability.averaged_stability(selections, canberra_distance_partial_ranked_list, np.array),
+        }
+
+    @staticmethod
+    def stability_for_weights(selections):
+        return {'pearson': ResultsStability.averaged_stability(selections, pearsons_correlation_no_zeros, np.array)}
+
 
     @staticmethod
     def _summarize_algorithm_stability(stability):
@@ -107,7 +150,7 @@ class ResultsStability:
 
                 results = {
                     **results,
-                    **stability_for_ranks(rank_at_k, num_features),
+                    **ResultsStability.stability_for_ranks(rank_at_k, num_features),
                     'selected': k
                 }
 
@@ -117,7 +160,7 @@ class ResultsStability:
                     else:
                         weights_at_k = weights
 
-                    weights_result = stability_for_weights(weights_at_k)
+                    weights_result = ResultsStability.stability_for_weights(weights_at_k)
                     results.update(weights_result)
 
                 all_results.append(results)
@@ -126,7 +169,7 @@ class ResultsStability:
 
         if result_type == 'subset':
             ResultsStability._print_evaluating(name, dataset_name, num_selected, num_executions, verbose)
-            subset_results = {**result_model, **stability_for_sets(values, num_features)}
+            subset_results = {**result_model, **ResultsStability.stability_for_sets(values, num_features)}
             return pd.DataFrame([subset_results])
 
     @staticmethod

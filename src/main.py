@@ -12,7 +12,7 @@ from util.shared_resources import SharedResources
 from util.command_line import get_args
 from task.task_factory import tasks_from_presets
 
-from evaluation.results_scorer import ResultsScorer
+from evaluation.results_prediction import ResultsScorer
 from evaluation.results_stability import ResultsStability
 from evaluation.results_execution_time import ExecutionTimesAggregator
 
@@ -82,9 +82,7 @@ def main():
     if mode in ['all', 'scoring']:
         selection_filename = selection_filename if selection_filename.endswith('.csv') else f'{selection_filename}.csv'
         selection_results_path = os.path.join(results_path, selection_filename)
-        summarized_scoring, scoring = ResultsScorer.summarized_score_all(selection_results_path, datasets,return_complete=True)
-
-        ResultsWritter.write_dataframe(summarized_scoring, scoring_filename, results_path)
+        scoring = ResultsScorer.summarized_score_all(selection_results_path, datasets,return_complete=True)
         ResultsWritter.write_dataframe(scoring, f'{scoring_filename}-complete', results_path)
 
     # Stability analysis of feature selection methods
