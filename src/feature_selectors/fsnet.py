@@ -19,13 +19,10 @@ class FSNetFeatureSelector(BaseSelector):
         super().__init__(n_features)
         self.hidden_dims = tuple(hidden_dims) if hidden_dims is not None else self.DEFAULT_HIDDEN_DIMS
         
-        if not isinstance(hidden_dims, tuple):
-            self.hidden_dims = tuple(hidden_dims)
-        
     def fit(self, X, y, n_informative, **kwargs):
         n_classes = len(set(y))
 
-        n_selected = min(self._n_features, X.shape[1])
+        n_selected = X.shape[1]
         fsnet = FSNet(Model(n_selected, n_classes, hidden_dims=self.hidden_dims), X.shape[1], 30, n_selected, n_classes)
         le = LabelEncoder()
         y = le.fit_transform(y)

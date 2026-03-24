@@ -21,7 +21,7 @@ class CAEFeatureSelector(BaseSelector):
         
     def fit(self, X, y, n_informative, **kwargs):
         self.n_classes = len(set(y))
-        k = self._n_features
+        k = n_informative
         def nn(x):
             n_out = 1 if (self.n_classes <= 2) else self.n_classes
             x = keras.layers.GaussianNoise(0.1)(x)

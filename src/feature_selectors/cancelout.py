@@ -33,17 +33,16 @@ class CancelOutFeatureSelector(BaseEmbeddedFeatureSelector):
         **kwargs
     ):
 
-        hidden_layers = tuple(hidden_layers) if hidden_layers is not None else self.DEFAULT_HIDDEN_LAYERS
-        lambda_1 = lambda_1 if lambda_1 is not None else self.DEFAULT_LAMBDA_1
-        lambda_2 = lambda_2 if lambda_2 is not None else self.DEFAULT_LAMBDA_2
-        activation = activation if activation is not None else self.DEFAULT_ACTIVATION
+        hidden_layers = tuple(hidden_layers) if hidden_layers else self.DEFAULT_HIDDEN_LAYERS
+        lambda_1 = lambda_1 or self.DEFAULT_LAMBDA_1
+        lambda_2 = lambda_2 or self.DEFAULT_LAMBDA_2
+        activation = activation or self.DEFAULT_ACTIVATION
         cancelout_loss = cancelout_loss if cancelout_loss is not None else self.DEFAULT_CANCEL_OUT_LOSS
-        batch_size = batch_size if batch_size is not None else self.DEFAULT_BATCH_SIZE
-        epochs = epochs if epochs is not None else self.DEFAULT_EPOCHS
-
+        batch_size = batch_size or self.DEFAULT_BATCH_SIZE
+        epochs = epochs or self.DEFAULT_EPOCHS
+        self._n_features = n_features
 
         model = CancelOutModel(
-            input_dim=n_features,
             activation=activation,
             hidden_layers=hidden_layers,
             lambda_1=lambda_1,
@@ -66,7 +65,6 @@ class CancelOutModel:
 
     def __init__(
         self,
-        input_dim,
         activation="sigmoid",
         lambda_1=5,
         lambda_2=0.05,
@@ -76,7 +74,6 @@ class CancelOutModel:
         hidden_layers=None,
         verbose=0
     ):
-        self.input_dim = input_dim
         self.activation = activation
         self.lambda_1 = lambda_1
         self.lambda_2 = lambda_2
@@ -86,13 +83,12 @@ class CancelOutModel:
         self.hidden_layers = hidden_layers
         self.verbose = verbose
 
-        self._build_model()
 
     def _build_model(self):
 
         inputs = keras.Input(shape=(self.input_dim,))
         
-        self.cancelout_layer = CancelOut(self.activation, lambda_1=self.lambda_1, lambda_2=self.lambda_2)
+        self.cancelout_layer = CancelOutLayer(self.activation, lambda_1=self.lambda_1, lambda_2=self.lambda_2)
         x = self.cancelout_layer(inputs)
         
         for units in self.hidden_layers:
@@ -110,6 +106,8 @@ class CancelOutModel:
     def fit(self, X, y, **kwargs):
         le = LabelEncoder()
         _y = le.fit_transform(y)
+        self.input_dim = X.shape[1]
+        self._build_model()
         self.model.fit(
             X,
             _y,
@@ -133,7 +131,7 @@ class CancelOutModel:
         return w
     
 @register_keras_serializable()
-class CancelOut(keras.layers.Layer):
+class CancelOutLayer(keras.layers.Layer):
     '''
     CancelOut Layer
     '''

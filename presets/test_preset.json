@@ -51,5 +51,46 @@
                 "sample_runs": 0
             }
         ]
+    },
+    {
+        "description": "Test that should run every algorithm once",
+        "run_once": false,
+        "category": "dnn-based",
+        "n_informative": 2,
+        "datasets": [
+            "Prostate_GSE6919_U95C"
+        ],
+        "algorithms": [
+            {
+                "name": "LassoNet",
+                "params": [[null, [10, 10, 10]]],
+                "runs": 1,
+                "sample_runs": 0
+            },           
+            {
+                "name": "Cancelout",
+                "params": [[null ,[32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "Deeppink",
+                "params": [[null, [32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "FSNet",
+                "params": [[null, [32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "CAE",
+                "params": [[null, [32, 2, 5, 3]]],
+                "runs": 1,
+                "sample_runs": 0
+            }
+        ]
     }
 ]
