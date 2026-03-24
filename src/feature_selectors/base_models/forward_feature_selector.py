@@ -27,7 +27,7 @@ class ForwardFeatureSelector(BaseSelector):
 
         return best_feat
 
-    def fit(self, X, y):
+    def fit(self, X, y, n_informative):
         self.check_already_fitted()
         self._fitted = True
         self._X = X

@@ -19,7 +19,7 @@ class CAEFeatureSelector(BaseSelector):
         self.hidden_dims = tuple(hidden_dims) if hidden_dims is not None else self.DEFAULT_HIDDEN_DIMS
         
         
-    def fit(self, X, y, **kwargs):
+    def fit(self, X, y, n_informative, **kwargs):
         self.n_classes = len(set(y))
         k = self._n_features
         def nn(x):

@@ -15,7 +15,7 @@ class BaseEmbeddedFeatureSelector(BaseSelector):
         self._is_callable = is_callable
         self._encode = encode_classes
 
-    def fit(self, X, y, **kwargs):
+    def fit(self, X, y, n_informative, **kwargs):
         self.check_already_fitted()
         self._X = X
 

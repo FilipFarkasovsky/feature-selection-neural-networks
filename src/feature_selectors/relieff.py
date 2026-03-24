@@ -22,7 +22,7 @@ class ReliefFFeatureSelector(BaseSelector):
 
         return first_k
 
-    def fit(self, X, y):
+    def fit(self, X, y, n_informative):
         self.check_already_fitted()
         self._X = X
         n_samples, n_features = X.shape

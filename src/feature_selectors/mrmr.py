@@ -11,7 +11,7 @@ class MRMRFeatureSelector(BaseSelector):
     def __init__(self, n_features=None):
         super().__init__(n_features)
 
-    def fit(self, X, y, verbose=0):
+    def fit(self, X, y, n_informative, verbose=0):
         self.check_already_fitted()
 
         self._X = X

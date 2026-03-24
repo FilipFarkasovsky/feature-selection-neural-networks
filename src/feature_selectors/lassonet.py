@@ -41,7 +41,7 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
             encode_classes=False
         )
 
-    def fit(self, X, y):
+    def fit(self, X, y, n_informative):
         le = LabelEncoder()
         y = le.fit_transform(y)
-        super().fit(X, y)
+        super().fit(X, y, n_informative=n_informative)

@@ -6,6 +6,8 @@ class Result:
     name: str
     processing_time: float
     dataset_name: str
+    selected_informative_k: int
+    selected_informative_2k: int
     num_features: int
     num_selected: int
     sampling: str

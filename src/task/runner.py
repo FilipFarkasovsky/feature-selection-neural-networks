@@ -44,7 +44,7 @@ class TaskRunner():
             fs = task.feature_selector
 
             start = time()
-            fs.fit(X, y)
+            fs.fit(X, y, task.n_informative)
             time_spent = time() - start
 
             if fs.result_type is ResultType.WEIGHTS:
@@ -57,10 +57,32 @@ class TaskRunner():
             num_selected = task.feature_selector._n_features
             num_features = dataset.get_instances_shape()[1]
 
+            # Determine feature ordering / selection indices
+            if fs.result_type is ResultType.WEIGHTS:
+                # sort features by absolute weight descending
+                ordered_features = sorted(range(len(values)), key=lambda i: abs(values[i]), reverse=True)
+            elif fs.result_type is ResultType.RANK:
+                # rank already gives top features first
+                ordered_features = [int(v) for v in values]
+            else:
+                # selected mask: just take the selected features in order (could also sort by index)
+                ordered_features = [int(v) for v in values]
+
+            # Number of informative features
+            k = task.n_informative
+
+            # Count how many informative features are selected in top k features
+            selected_informative_k = sum(1 for f in ordered_features[:k] if f < k)
+
+            # Count how many informative features are selected in top 2k features
+            selected_informative_2k = sum(1 for f in ordered_features[:2*k] if f < k)
+
             result = Result(
                 name=task.name,
                 processing_time=time_spent,
                 dataset_name=dataset.name,
+                selected_informative_k=selected_informative_k,
+                selected_informative_2k=selected_informative_2k,
                 num_features=num_features,
                 num_selected=num_selected if num_selected else num_features,
                 sampling=task.sampling,

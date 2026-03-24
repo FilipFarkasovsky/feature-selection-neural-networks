@@ -23,7 +23,7 @@ class BaseSelector(ABC):
         self._fitted = False
 
     @abstractmethod
-    def fit(X, y):
+    def fit(X, y, n_informative):
         raise NotImplementedError()
 
     def _check_fit(self):

@@ -28,7 +28,7 @@ def _config_to_tasks(config):
             for sampling in SAMPLING_TYPES:
                 runs = algorithm['runs'] if sampling == 'none' else algorithm['sample_runs']
                 for _ in range(runs):
-                    yield Task(algorithm['name'], feature_selectors[algorithm['name']](*params), dataset, sampling)
+                    yield Task(algorithm['name'], feature_selectors[algorithm['name']](*params), dataset, config['n_informative'], sampling)
 
 
 def _print_preset(name, preset):

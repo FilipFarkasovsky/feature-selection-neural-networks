@@ -22,7 +22,7 @@ class Deeppink(BaseSelector):
         if not isinstance(hidden_dims, tuple):
             self.hidden_dims = tuple(hidden_dims)
         
-    def fit(self, X, y, **kwargs):
+    def fit(self, X, y, n_informative, **kwargs):
         n_classes = len(set(y))
 
         scaler = StandardScaler()

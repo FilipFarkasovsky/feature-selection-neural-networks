@@ -36,7 +36,7 @@ class RFE(BaseSelector):
 
         return worst_feat
 
-    def fit(self, X, y, **kwargs):
+    def fit(self, X, y, n_informative, **kwargs):
         self.check_already_fitted()
         self._X = X
 
