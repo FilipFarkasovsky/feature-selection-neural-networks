@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+import torch
 
 from feature_selectors.base_models.base_selector import BaseSelector, ResultType
 
@@ -24,9 +25,13 @@ class FSNetFeatureSelector(BaseSelector):
 
         n_selected = X.shape[1]
         fsnet = FSNet(Model(n_selected, n_classes, hidden_dims=self.hidden_dims), X.shape[1], 30, n_selected, n_classes)
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        fsnet.to(device)
         le = LabelEncoder()
         y = le.fit_transform(y)
-        fsnet.fit(X, y)
+        X_tensor = torch.tensor(X, dtype=torch.float32, device=device)
+        y_tensor = torch.tensor(y, dtype=torch.long, device=device)
+        fsnet.fit(X_tensor, y_tensor)
         self._weights = fsnet.get_feature_importances().astype(float).tolist()
         self._rank = np.argsort(self._weights)[::-1]
 

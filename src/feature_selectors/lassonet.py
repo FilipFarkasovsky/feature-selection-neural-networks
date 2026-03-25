@@ -2,7 +2,7 @@ import numpy as np
 from lassonet import LassoNetClassifier
 from sklearn.preprocessing import LabelEncoder
 from feature_selectors.base_models import BaseEmbeddedFeatureSelector
-
+import torch
 
 class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
     DEFAULT_HIDDEN_DIMS = (32, 32, 32)
@@ -23,6 +23,7 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
 
         if not isinstance(hidden_dims, tuple):
             hidden_dims = tuple(hidden_dims)
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         model = LassoNetClassifier(
             hidden_dims=hidden_dims,
@@ -30,6 +31,7 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
             path_multiplier=path_multiplier,
             verbose = False,
             n_iters = (300,100),
+            device=device,
             **kwargs
         )
 

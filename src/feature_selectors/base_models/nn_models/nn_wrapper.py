@@ -76,7 +76,7 @@ class NNwrapper:
         self.model.to(device)
 
         # Create dataloader for all samples
-        train_loader = DataLoader(TrainingSet(X, Y),batch_size=batch_size, shuffle=True)
+        train_loader = DataLoader(TrainingSet(X, Y, device),batch_size=batch_size, shuffle=True)
         criterion = torch.nn.BCEWithLogitsLoss() if self.n_classes <= 2 else torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 

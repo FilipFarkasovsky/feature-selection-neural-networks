@@ -13,6 +13,8 @@ class Deeppink(BaseSelector):
 
     def __init__(self, n_features=None, hidden_dims=None, **kwargs):
         super().__init__(n_features)
+        if not hidden_dims:
+            print("hidden is None") 
         self.hidden_dims = tuple(hidden_dims) if hidden_dims is not None else self.DEFAULT_HIDDEN_DIMS
     
     def _create_knockoffs(self, X):
@@ -27,7 +29,7 @@ class Deeppink(BaseSelector):
     def generate_gaussian_knockoffs(X, eps=1e-3, lambda_=0.8):
         n_samples, n_features = X.shape
 
-        # Compute mean and empirical covariance
+        # Compute mean and empirical 
         mu = np.mean(X, axis=0)
         sigma = np.cov(X, rowvar=False)
 
@@ -39,7 +41,7 @@ class Deeppink(BaseSelector):
         S = np.diag(s)
 
         # Compute matrix for knockoff covariance
-        sigma_inv_S = scipy.linalg.lstsq(sigma_reg, S)[0]
+        sigma_inv_S = scipy.linalg.solve(sigma_reg, S, assume_a='pos')
         V = 2. * S - np.dot(S, sigma_inv_S)
         L = np.linalg.cholesky(V + eps * np.eye(n_features))
 
@@ -51,16 +53,21 @@ class Deeppink(BaseSelector):
         return np.stack([X, X_knock], axis=2) 
           
     def fit(self, X, y, n_informative, **kwargs):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         n_classes = len(set(y))
 
         X = StandardScaler().fit_transform(X)
         y = LabelEncoder().fit_transform(y)
 
         X_augmented = self.generate_gaussian_knockoffs(X)
+
+        X_augmented = torch.tensor(X_augmented, dtype=torch.float32, device=device)
+        y = torch.tensor(y, dtype=torch.long, device=device)
         
         loss_callbacks = []
         _lambda = 0.05 * np.sqrt(2.0 * np.log(X.shape[1]) / 1000)
         model = DeepPINK(Model(X.shape[1], n_classes, hidden_dims=self.hidden_dims), X.shape[1])
+        model.to(device)
         for layer in model.children():
             if isinstance(layer, torch.nn.Linear):
                 loss_callbacks.append(lambda l=layer: _lambda * torch.sum(torch.abs(l.weight)))
@@ -68,8 +75,9 @@ class Deeppink(BaseSelector):
         for loss_callback in loss_callbacks:
             wrapper.add_loss_callback(loss_callback)
 
-        wrapper.fit(X_augmented, y)
+        wrapper.fit(X_augmented, y, device=device)
 
+        model.to("cpu")
         self._weights = wrapper.model.get_weights().astype(float).tolist()
         self._rank = np.argsort(self._weights)[::-1]
 

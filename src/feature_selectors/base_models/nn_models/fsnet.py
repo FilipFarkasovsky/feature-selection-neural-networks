@@ -1,24 +1,3 @@
-# -*- coding: utf-8 -*-
-#
-#  fsnet.py
-#  
-#  Copyright 2022 Antoine Passemiers <antoine.passemiers@gmail.com>
-#  
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#  
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#  
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#  MA 02110-1301, USA.
-
 import numpy as np
 import torch
 
@@ -52,7 +31,8 @@ class WeightPredictor(torch.nn.Module):
         torch.nn.init.xavier_uniform_(self.weight)
 
     def init(self, U):
-        self.U = torch.FloatTensor(U)
+        device = self.weight.device  # use the same device as the model
+        self.U = U.clone().detach().to(device=device, dtype=torch.float32)        
         if self.lhs:
             assert self.U.size() == (self.n_low, self.n_output)
         else:
@@ -87,19 +67,21 @@ class Selector(torch.nn.Module):
     def init(self, U):
         self.weight_predictor.init(U)
 
-    def forward(self, X):
+    def forward(self, X, check_nan = False):
         logits = self.compute_logits()
-        assert not np.any(np.isnan(logits.data.numpy()))
+        if check_nan:
+            assert not torch.isnan(logits).any()
 
         # Concrete variables in the selection layer
         if self.training:
-            g = self.sample_gumbel(logits.size())
+            g = -torch.log(-torch.log(torch.rand_like(logits, device=logits.device)))
             noisy_logits = (logits + g) / self.tau
         else:
             noisy_logits = logits
-        M_T = torch.softmax(noisy_logits, 0)  # Array of shape (n_features, n_selected)
+        M_T = torch.softmax(noisy_logits, dim = 0)  # Array of shape (n_features, n_selected)
 
-        assert not np.any(np.isnan(M_T.data.numpy()))
+        if check_nan:
+            assert not torch.isnan(M_T).any()
 
         # Select features
         if self.training:
@@ -107,12 +89,13 @@ class Selector(torch.nn.Module):
         else:
             indices, _ = Selector.uargmax(M_T)
             X_subset = X[:, indices]
-        assert not np.any(np.isnan(X_subset.data.numpy()))
+        if check_nan:
+            assert not torch.isnan(X_subset).any()
         return X_subset
 
-    def sample_gumbel(self, shape):
-        x = self.uniform.sample(shape)
-        return -torch.log(-torch.log(x))
+    def sample_gumbel(self, shape, device):
+        U = torch.rand(shape, device=device).clamp(1e-5, 1 - 1e-5)
+        return -torch.log(-torch.log(U))
 
     def compute_logits(self):
         return self.weight_predictor()
@@ -131,25 +114,17 @@ class Selector(torch.nn.Module):
         M_T = torch.softmax(logits, 0)
         #_, weights = Selector.uargmax(M_T)
         #return weights.data.numpy()
-        return np.mean(M_T.data.numpy(), axis=1)
+        return np.mean(M_T.detach().cpu().numpy(), axis=1)
 
     @staticmethod
     def uargmax(A):
-        A = A.data.numpy()
-
         # Ensure values are strictly positive
         A = A - A.min() + 1e-5
 
-        indices = np.empty(A.shape[1], dtype=int)
-        weights = np.zeros(A.shape[0], dtype=float)
-        for k in range(A.shape[1]):
-            i, j = np.unravel_index(np.argmax(A, axis=None), A.shape)
-            indices[k] = i
-            weights[i] = A[i, j]
-            A[i, :] = 0
-            A[:, j] = 0
-        return torch.LongTensor(indices), torch.FloatTensor(weights)
-
+        k = A.shape[1]
+        indices = torch.topk(A, k=k, dim=0).indices
+        weights = A.gather(0, indices)
+        return indices, weights
 
 class Encoder(torch.nn.Module):
 
@@ -215,13 +190,14 @@ class FSNet(torch.nn.Module):
         self.reconstruction = Reconstruction(n_selected, n_bins, n_input)
 
     def fit(self, X, y, n_epochs=300, batch_size=32, _lambda=10, weight_decay=1e-6):
-
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.to(device)
         # Initialize weight predictors
-        U = FSNet.compute_u(X, n_bins=self.n_bins)
+        U = FSNet.compute_u(X, n_bins=self.n_bins, device=device)
         self.selector.init(U)
         self.reconstruction.init(U.t())
 
-        dataset = TrainingSet(X, y)
+        dataset = TrainingSet(X, y, device)
         loader = torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, shuffle=True, sampler=None, num_workers=0)
         self.model.train()
@@ -235,30 +211,38 @@ class FSNet(torch.nn.Module):
             threshold_mode='rel', cooldown=5, min_lr=1e-5, eps=1e-08)
 
         for e in range(n_epochs):
-
             # Lower the temperature
             self.selector.update_temperature(e, n_epochs)
 
+            check_nan = (e % 10 == 0)
+
             total_loss = 0
             for _X, _y in loader:
+                _X = _X.to(device).contiguous()
+                _y = _y.to(device)
 
                 optimizer.zero_grad()
 
                 # Select a subset of features
-                X_subset = self.selector.forward(_X)
-                assert not torch.isnan(X_subset).any()
+                X_subset = self.selector.forward(_X, check_nan=check_nan)
+                if check_nan:
+                    assert not torch.isnan(X_subset).any()
 
                 # Predict the target variable from the selected subset of features
                 X_latent = self.encoder.forward(X_subset)
-                assert not np.any(np.isnan(X_latent.data.numpy()))
+                if check_nan:
+                    assert not torch.isnan(X_latent).any()
                 y_hat = self.model.forward(X_latent)
-                assert not torch.isnan(X_latent).any()
+                if check_nan:
+                    assert not torch.isnan(X_latent).any()
 
                 # Reconstruct the input data
                 X_reconstructed = self.decoder.forward(X_latent)
-                assert not torch.isnan(y_hat).any()
+                if check_nan:
+                    assert not torch.isnan(y_hat).any()
                 X_reconstructed = self.reconstruction.forward(X_reconstructed)
-                assert not torch.isnan(X_reconstructed).any()
+                if check_nan:
+                    assert not torch.isnan(X_reconstructed).any()
 
                 # Compute loss function
                 if self.n_classes > 2:
@@ -268,9 +252,6 @@ class FSNet(torch.nn.Module):
                 loss2 = _lambda * torch.mean((_X - X_reconstructed) ** 2)
                 loss = loss1 + loss2
 
-                # print(_X.size(), X_subset.size(), X_latent.size(), y_hat.size(), X_reconstructed.size())
-
-                #print(loss1.item(), loss2.item())
                 total_loss += loss.item()
 
                 # Update parameters
@@ -278,12 +259,10 @@ class FSNet(torch.nn.Module):
                 optimizer.step()
             scheduler.step(total_loss)
 
-            # print(f'Total loss at epoch {e + 1}: {total_loss}')
-
         self.model.eval()
 
     def predict(self, X):
-        X = torch.FloatTensor(X)
+        X = torch.FloatTensor(X).to(self.device)
         X = self.selector.forward(X)
         X = self.encoder.forward(X)
         y_pred = self.model.forward(X)
@@ -301,12 +280,12 @@ class FSNet(torch.nn.Module):
         return importances
 
     @staticmethod
-    def compute_u(X, n_bins=20):
+    def compute_u(X, n_bins=20, device='cpu'):
         n_features = X.shape[1]
         U = np.zeros((n_features, n_bins),dtype=float)
         for j in range(0, n_features):
-            hist = np.histogram(X[:, j], n_bins)
+            hist = np.histogram(X[:, j].cpu().numpy(), n_bins)
             U[j, :] = 0.5 * hist[0][:] * (hist[1][:-1] + hist[1][1:])
         U -= U.mean()
         U /= U.std()
-        return torch.FloatTensor(U)
+        return torch.tensor(U, dtype=torch.float32, device=device)

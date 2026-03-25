@@ -8,8 +8,7 @@ class LocallyConnected1d(torch.nn.Module):
         torch.nn.Module.__init__(self)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
-        weight = torch.zeros((self.n_filters, self.kernel_size), requires_grad=True).float()
-        self.weight = torch.nn.Parameter(weight)
+        self.weight = torch.nn.Parameter(torch.zeros((self.n_filters, self.kernel_size), requires_grad=True).float())
         if bias:
             bias = torch.zeros(self.n_filters, requires_grad=True).float()
             self.bias = torch.nn.Parameter(bias)
@@ -20,7 +19,7 @@ class LocallyConnected1d(torch.nn.Module):
     def forward(self, X):
         assert len(X.size()) == 3
         w = self.weight.unsqueeze(0)
-        X = torch.sum(X * w, axis=2)
+        X = torch.einsum('bik,ik->bi', X, self.weight)
         if self.bias is not None:
             X = X + self.bias.unsqueeze(0)
         return X.unsqueeze(2)
