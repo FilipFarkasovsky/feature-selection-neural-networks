@@ -12,34 +12,22 @@ class CancelOutFeatureSelector(BaseEmbeddedFeatureSelector):
     # Fixed defaults at class level
 
     DEFAULT_HIDDEN_LAYERS = (32, 32, 32)
-    DEFAULT_LAMBDA_1 = 0.2
-    DEFAULT_LAMBDA_2 = 0.1
-    DEFAULT_ACTIVATION = "sigmoid"
-    DEFAULT_CANCEL_OUT_LOSS = True
-    DEFAULT_BATCH_SIZE = 35
-    DEFAULT_EPOCHS = 100
 
     def __init__(
         self,
         n_features=None,
         hidden_layers=None,
         activation="sigmoid",
-        epochs = None,
+        epochs = 100,
         cancelout_loss = True,
-        lambda_1 = None,
-        lambda_2 = None,
-        batch_size = None,
+        lambda_1 = 0.2,
+        lambda_2 = 0.1,
+        batch_size = 35,
         encode_classes=False,
         **kwargs
     ):
 
         hidden_layers = tuple(hidden_layers) if hidden_layers else self.DEFAULT_HIDDEN_LAYERS
-        lambda_1 = lambda_1 or self.DEFAULT_LAMBDA_1
-        lambda_2 = lambda_2 or self.DEFAULT_LAMBDA_2
-        activation = activation or self.DEFAULT_ACTIVATION
-        cancelout_loss = cancelout_loss if cancelout_loss is not None else self.DEFAULT_CANCEL_OUT_LOSS
-        batch_size = batch_size or self.DEFAULT_BATCH_SIZE
-        epochs = epochs or self.DEFAULT_EPOCHS
         self._n_features = n_features
 
         model = CancelOutModel(
@@ -66,10 +54,10 @@ class CancelOutModel:
     def __init__(
         self,
         activation="sigmoid",
-        lambda_1=5,
-        lambda_2=0.05,
+        lambda_1=0.2,
+        lambda_2=0.1,
         cancelout_loss=True,
-        epochs=50,
+        epochs=100,
         batch_size=32,
         hidden_layers=None,
         verbose=0
