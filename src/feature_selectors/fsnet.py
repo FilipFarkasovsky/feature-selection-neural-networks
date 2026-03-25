@@ -8,6 +8,10 @@ from .base_models.nn_models.nn_wrapper import Model
 from .base_models.nn_models.fsnet import FSNet
 
 class FSNetFeatureSelector(BaseSelector):
+    """
+    FSNet feature selector using a differentiable feature selection layer
+    with reconstruction regularization.
+    """
     result_type = ResultType.WEIGHTS
     DEFAULT_HIDDEN_DIMS = (32, 32, 32)
 
@@ -22,16 +26,28 @@ class FSNetFeatureSelector(BaseSelector):
         
     def fit(self, X, y, n_informative, **kwargs):
         n_classes = len(set(y))
+        n_features = X.shape[1]
 
-        n_selected = X.shape[1]
-        fsnet = FSNet(Model(n_selected, n_classes, hidden_dims=self.hidden_dims), X.shape[1], 30, n_selected, n_classes)
+        # --- Prepare FSNet model ---
+        base_model = Model(2 * n_informative, n_classes, hidden_dims=self.hidden_dims)
+        fsnet = FSNet(
+            base_model, 
+            n_features, 
+            n_bins = 30,
+            n_selected = 2 * n_informative, 
+            n_classes = n_classes)
+        
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         fsnet.to(device)
-        le = LabelEncoder()
-        y = le.fit_transform(y)
+
+        # --- Preprocess data ---
         X_tensor = torch.tensor(X, dtype=torch.float32, device=device)
-        y_tensor = torch.tensor(y, dtype=torch.long, device=device)
+        y_tensor = torch.tensor(LabelEncoder().fit_transform(y), dtype=torch.long, device=device)
+
+        # --- Train FSNet ---
         fsnet.fit(X_tensor, y_tensor)
+
+        # --- Extract features from model ----
         self._weights = fsnet.get_feature_importances().astype(float).tolist()
         self._rank = np.argsort(self._weights)[::-1]
 

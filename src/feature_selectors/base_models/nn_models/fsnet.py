@@ -189,7 +189,7 @@ class FSNet(torch.nn.Module):
         self.decoder = Decoder(n_selected, n_selected)
         self.reconstruction = Reconstruction(n_selected, n_bins, n_input)
 
-    def fit(self, X, y, n_epochs=300, batch_size=32, _lambda=10, weight_decay=1e-6):
+    def fit(self, X, y, n_epochs=500, batch_size=64, _lambda=10, weight_decay=1e-6):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.to(device)
         # Initialize weight predictors

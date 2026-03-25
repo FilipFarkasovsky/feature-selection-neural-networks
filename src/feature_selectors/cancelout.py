@@ -18,7 +18,7 @@ class CancelOutFeatureSelector(BaseEmbeddedFeatureSelector):
         n_features=None,
         hidden_layers=None,
         activation="sigmoid",
-        epochs = 100,
+        epochs = 400,
         cancelout_loss = True,
         lambda_1 = 0.2,
         lambda_2 = 0.1,

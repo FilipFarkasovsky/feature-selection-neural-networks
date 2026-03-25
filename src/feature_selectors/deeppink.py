@@ -21,7 +21,7 @@ class Deeppink(BaseSelector):
         self.hidden_dims = tuple(hidden_dims) if hidden_dims is not None else self.DEFAULT_HIDDEN_DIMS
     
     @staticmethod
-    def generate_gaussian_knockoffs(X, eps=1e-3, lambda_=0.8):
+    def generate_gaussian_knockoffs(X, eps=1e-3, lambda_=0.7):
         """
         Generate Gaussian knockoff features preserving covariance structure.
         """
@@ -36,7 +36,7 @@ class Deeppink(BaseSelector):
         S = np.diag(np.diagonal(sigma_reg))
 
         # Compute matrix for knockoff covariance
-        sigma_inv_S = scipy.linalg.solve(sigma_reg, S, assume_a='pos')
+        sigma_inv_S = scipy.linalg.lstsq(sigma_reg, S)[0]
         V = 2. * S - np.dot(S, sigma_inv_S)
         L = np.linalg.cholesky(V + eps * np.eye(X.shape[1]))
 
@@ -67,10 +67,11 @@ class Deeppink(BaseSelector):
         model = DeepPINK(base_model, n_features)
 
         # --- Regularization ---
-        lambda_ = 0.05 * np.sqrt(2.0 * np.log(X.shape[1]) / 1000)
+        _lambda = 0.05 * np.sqrt(2.0 * np.log(X.shape[1]) / 1000)
+
         loss_callbacks = [
-            lambda layer=layer: lambda_ * torch.sum(torch.abs(layer.weight))
-            for layer in model.modules()
+            (lambda l=layer, lam=_lambda: lam * torch.sum(torch.abs(l.weight)))
+            for layer in model.children()
             if isinstance(layer, torch.nn.Linear)
         ]
 
@@ -80,7 +81,7 @@ class Deeppink(BaseSelector):
             wrapper.add_loss_callback(loss_callback)
 
         # --- Training ---
-        wrapper.fit(X_augmented, y, device=device)
+        wrapper.fit(X_tensor, y_tensor, device=device)
 
         # --- Extract Importance --- 
         model.to("cpu")
