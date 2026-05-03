@@ -74,7 +74,10 @@ class Selector(torch.nn.Module):
 
         # Concrete variables in the selection layer
         if self.training:
-            g = -torch.log(-torch.log(torch.rand_like(logits, device=logits.device)))
+            device = logits.device
+            x = torch.rand_like(logits, device=device).clamp(1e-5, 1 - 1e-5)
+            g = -torch.log(-torch.log(x))
+            # g = -torch.log(-torch.log(torch.rand_like(logits, device=logits.device)))
             noisy_logits = (logits + g) / self.tau
         else:
             noisy_logits = logits
@@ -118,12 +121,32 @@ class Selector(torch.nn.Module):
 
     @staticmethod
     def uargmax(A):
+        # A: tensor of shape (n_features, k)
+        device = A.device
+
         # Ensure values are strictly positive
         A = A - A.min() + 1e-5
 
-        k = A.shape[1]
-        indices = torch.topk(A, k=k, dim=0).indices
-        weights = A.gather(0, indices)
+        A_work = A.clone()  # avoid modifying original tensor
+
+        n_features, k = A_work.shape
+
+        indices = torch.empty(k, dtype=torch.long, device=device)
+        weights = torch.zeros(n_features, dtype=A.dtype, device=device)
+
+        for col in range(k):
+            # Flatten and find global max
+            flat_idx = torch.argmax(A_work)
+            i = flat_idx // k
+            j = flat_idx % k
+
+            indices[col] = i
+            weights[i] = A_work[i, j]
+
+            # Zero out selected row and column (like original)
+            A_work[i, :] = 0
+            A_work[:, j] = 0
+
         return indices, weights
 
 class Encoder(torch.nn.Module):
@@ -138,9 +161,7 @@ class Encoder(torch.nn.Module):
         self.apply(init_weights)
 
     def forward(self, X):
-        # return self.layers(X)
-        return X  # Identity function
-
+        return self.layers(X)
 
 class Decoder(torch.nn.Module):
 
@@ -154,9 +175,7 @@ class Decoder(torch.nn.Module):
         self.apply(init_weights)
 
     def forward(self, X):
-        # return self.layers(X)
-        return X  # Identity function
-
+        return self.layers(X)
 
 class Reconstruction(torch.nn.Module):
 
@@ -189,7 +208,7 @@ class FSNet(torch.nn.Module):
         self.decoder = Decoder(n_selected, n_selected)
         self.reconstruction = Reconstruction(n_selected, n_bins, n_input)
 
-    def fit(self, X, y, n_epochs=500, batch_size=64, _lambda=10, weight_decay=1e-6):
+    def fit(self, X, y, n_epochs=2000, batch_size=64, _lambda=10, weight_decay=1e-6):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.to(device)
         # Initialize weight predictors

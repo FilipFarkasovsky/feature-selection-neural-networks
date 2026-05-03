@@ -1,4 +1,3 @@
-import captum.attr
 import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
@@ -68,10 +67,10 @@ class NNwrapper:
             X,
             Y,
             device='cpu',
-            learning_rate=1e-3,
+            learning_rate=0.0015,
             epochs=200,  
             batch_size=64,  # 64
-            weight_decay=1e-5  # 1e-5
+            weight_decay=0.00005  # 1e-5
     ):
         self.model.to(device)
 
@@ -83,8 +82,6 @@ class NNwrapper:
         self.model.train()
         for epoch in range(epochs):
             for x, y in train_loader:
-                x = x.to(device)
-                y = y.to(device)
                 optimizer.zero_grad()
                 y_hat = self.model(x)
                 if self.n_classes <= 2:
