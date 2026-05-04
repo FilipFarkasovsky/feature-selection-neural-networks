@@ -1,0 +1,31 @@
+[
+    {
+        "description": "Test that should run every algorithm once",
+        "run_once": false,
+        "category": "dnn-based",
+        "n_informative": 50,
+        "datasets": [
+            "synth_200samples_5000features_50informative_50redundant"
+        ],
+        "algorithms": [
+            {
+                "name": "Deeppink",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "LassoNet",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "Cancelout",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            }
+        ]
+    }
+]

@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
+import copy
 
 from .cancelout import CancelOut
 from .utils import TrainingSet, TestSet
@@ -70,7 +71,9 @@ class NNwrapper:
             learning_rate=0.0015,
             epochs=200,  
             batch_size=64,  # 64
-            weight_decay=0.00005  # 1e-5
+            weight_decay=0.00005,
+            patience=20,
+            tol=1e-3
     ):
         self.model.to(device)
 
@@ -80,7 +83,13 @@ class NNwrapper:
         optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
         self.model.train()
+
+        best_loss = float("inf")
+        best_state = None
+        no_improve_counter = 0
         for epoch in range(epochs):
+            epoch_loss = 0.0
+    
             for x, y in train_loader:
                 optimizer.zero_grad()
                 y_hat = self.model(x)
@@ -92,5 +101,23 @@ class NNwrapper:
                     loss += cb()
                 loss.backward()
                 optimizer.step()
+                epoch_loss += loss.item()
+
+            epoch_loss /= len(train_loader)
+
+            # ---- Early stopping logic ----
+            if best_loss - epoch_loss > tol:
+                best_loss = epoch_loss
+                best_state = copy.deepcopy(self.model.state_dict())
+                no_improve_counter = 0
+            else:
+                no_improve_counter += 1
+
+            if no_improve_counter >= patience:
+                break
+        # Restore best model
+        if best_state is not None:
+            self.model.load_state_dict(best_state)
+
         self.model.eval()
         self.trained = True

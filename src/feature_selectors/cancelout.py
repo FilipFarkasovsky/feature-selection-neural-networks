@@ -57,7 +57,7 @@ class CancelOutModel:
         lambda_1=0.2,
         lambda_2=0.1,
         cancelout_loss=True,
-        epochs=100,
+        epochs=400,
         batch_size=32,
         hidden_layers=None,
         verbose=0
@@ -142,8 +142,14 @@ class CancelOutLayer(keras.layers.Layer):
         
     def call(self, inputs):
         activated_w = self.activation(self.w)
-        self.add_loss(self.lambda_1 * tf.reduce_sum(tf.abs(activated_w)) + self.lambda_2 * tf.norm(self.w, ord=2))
-        return tf.math.multiply(inputs, self.activation(self.w))
+
+        var_penalty = tf.math.reduce_variance(activated_w)
+
+        reg_penalty = tf.reduce_sum(self.w)
+
+        self.add_loss(self.lambda_1 * var_penalty +
+                      self.lambda_2 * reg_penalty)
+        return tf.math.multiply(inputs, activated_w)
     
     def get_config(self):
         config = super().get_config()

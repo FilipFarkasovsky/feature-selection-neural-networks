@@ -30,3 +30,6 @@ run-reduced:
 
 run-test:
 	python src/main.py all -p test_preset -n 1 -vv
+
+run-preset-1:
+	python src/main.py all -p preset_1 -n 1 -vv
