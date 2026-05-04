@@ -24,7 +24,6 @@ class MRMRFeatureSelector(BaseSelector):
                 f'Number of features to select ({self._n_features}) is higher '
                 f'than number of features in data ({n_features})'
             )
-
         selected = []
         remaining = list(range(n_features))
 
@@ -44,7 +43,6 @@ class MRMRFeatureSelector(BaseSelector):
             print(f'[1/{self._n_features}] Selected feat {first_feature} with mRMR: {highest_mi:0.3}')
 
         for num_selected in range(1, self._n_features):
-
             remaining_features = X[:, remaining]
             last_selected_feature = X.T[selected[-1]]
             last_selected_to_remaining_mi = mutual_information(remaining_features, last_selected_feature)

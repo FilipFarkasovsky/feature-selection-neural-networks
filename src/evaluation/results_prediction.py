@@ -46,7 +46,7 @@ class SelectionScorer:
     @staticmethod
     def _eval(X, y, model, scoring):
         X = minmax_scale(X)
-        cv = StratifiedKFold()
+        cv = StratifiedKFold(n_splits=5, shuffle=False)
         results = cross_validate(model, X, y, cv=cv, scoring=scoring)
         return {k.replace("test_", ""): v.mean() for k, v in results.items() if not k.endswith("time")}
 
@@ -59,7 +59,7 @@ class SelectionScorer:
 
 
 class ResultsScorer:
-    DEFAULT_EVALUATE_AT = [5, 10, 20, 50, 100, 200]
+    DEFAULT_EVALUATE_AT = [8, 16, 32, 64, 128]
 
     @staticmethod
     def summarized_score_all(results_path, datasets, return_complete=False, evaluate_at = None):

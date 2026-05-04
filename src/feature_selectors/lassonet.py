@@ -1,6 +1,6 @@
 import numpy as np
 from lassonet import LassoNetClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from feature_selectors.base_models import BaseEmbeddedFeatureSelector
 import torch
 
@@ -40,6 +40,11 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
         )
     
     def fit(self, X, y, n_informative):
+        # --- scaling ---
+        self.scaler_ = StandardScaler()
+        X = self.scaler_.fit_transform(X)
+
+        # --- encoding ---
         le = LabelEncoder()
         y = le.fit_transform(y)
         super().fit(X, y, n_informative=n_informative)

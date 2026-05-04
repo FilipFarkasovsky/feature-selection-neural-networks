@@ -1,16 +1,23 @@
 [
     {
-        "description": "Classical algorithms for prostate dataset",
+        "description": "Classical algorithms for friedman datasets",
         "run_once": false,
         "category": "classical",
-        "n_informative": 128,
+        "n_informative": 7,
         "datasets": [
-            "Prostate_GSE6919_U95C"
+            "friedman1_1000samples_8features",
+            "friedman1_1000samples_16features",
+            "friedman1_1000samples_32features",
+            "friedman1_1000samples_64features",
+            "friedman1_1000samples_128features",
+            "friedman1_1000samples_256features",
+            "friedman1_1000samples_512features",
+            "friedman1_1000samples_1024features"
         ],
         "algorithms": [
             {
                 "name": "MRMR",
-                "params": [[128]],
+                "params": [[14]],
                 "runs": 1,
                 "sample_runs": 0
             },

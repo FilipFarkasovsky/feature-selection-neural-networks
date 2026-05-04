@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 from feature_selectors.base_models import BaseEmbeddedFeatureSelector
 from keras.utils import register_keras_serializable
@@ -92,8 +92,14 @@ class CancelOutModel:
         )
 
     def fit(self, X, y, **kwargs):
+        # --- scaling ---
+        self.scaler_ = StandardScaler()
+        X = self.scaler_.fit_transform(X)
+
+        # --- encoding ---
         le = LabelEncoder()
         _y = le.fit_transform(y)
+
         self.input_dim = X.shape[1]
         self._build_model()
         self.model.fit(

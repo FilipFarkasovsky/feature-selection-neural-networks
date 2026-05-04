@@ -33,3 +33,12 @@ run-test:
 
 run-preset-1:
 	python src/main.py all -p preset_1 -n 1 -vv
+
+run-preset-2:
+	python src/main.py all -p preset_2 -n 1 -vv
+
+run-preset-3:
+	python src/main.py all -p preset_3 -n 1 -vv
+
+run-preset-4:
+	python src/main.py all -p preset_4 -n 1 -vv

@@ -1,0 +1,31 @@
+[
+    {
+        "description": "Dnn-based methods for prostate dataset",
+        "run_once": false,
+        "category": "dnn-based",
+        "n_informative": 128,
+        "datasets": [
+            "Prostate_GSE6919_U95C"
+        ],
+        "algorithms": [
+            {
+                "name": "Deeppink",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "LassoNet",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "Cancelout",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            }
+        ]
+    }
+]
