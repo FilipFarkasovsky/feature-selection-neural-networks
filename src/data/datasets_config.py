@@ -14,6 +14,8 @@ datasets_relative_paths = {
     'friedman1_1000samples_256features': 'friedman/friedman1_1000samples_256features.csv',
     'friedman1_1000samples_512features': 'friedman/friedman1_1000samples_512features.csv',
     'friedman1_1000samples_1024features': 'friedman/friedman1_1000samples_1024features.csv',
+    'friedman1_1000samples_2048features': 'friedman/friedman1_1000samples_2048features.csv',
+    'friedman1_1000samples_768features': 'friedman/friedman1_1000samples_768features.csv',
     # Synthetic
     'synth_100samples_5000features_50informative': 'synthetic/synth_100samples_5000features_50informative.csv',
     'synth_100samples_5000features_50informative_50redundant': 'synthetic/synth_100samples_5000features_50informative_50redundant.csv',

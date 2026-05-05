@@ -42,28 +42,23 @@ class NeuralNet(nn.Module):
 
         self.net = nn.Sequential(
             # ── Block 1: input → 128 
-            nn.Linear(input_dim, 64),
-            nn.BatchNorm1d(64),
+            nn.Linear(input_dim, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Dropout(p=0.3),
 
             # ── Block 2: 128 → 64 
-            nn.Linear(64, 32),
+            nn.Linear(32, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Dropout(p=0.2),
 
             # ── Block 3: 64 → 16  
-            nn.Linear(32, 16),
-            nn.BatchNorm1d(16),
+            nn.Linear(32, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
 
-            # ── Block 4: 16 → 16 
-            nn.Linear(16, 16),
-            nn.BatchNorm1d(16),
-            nn.ReLU(),
-
-            nn.Linear(16, n_classes),
+            nn.Linear(32, n_classes),
         )
 
         self._init_weights()

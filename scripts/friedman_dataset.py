@@ -108,3 +108,9 @@ dataset.to_csv(DATASETS_PATH)
 
 dataset = DatasetParams(n_samples=1000, n_features=1024, noise_std=1.0)
 dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=1000, n_features=2048, noise_std=1.0)
+dataset.to_csv(DATASETS_PATH)
+
+dataset = DatasetParams(n_samples=1000, n_features=768, noise_std=1.0)
+dataset.to_csv(DATASETS_PATH)

@@ -5,7 +5,7 @@
         "category": "dnn-based",
         "n_informative": 7,
         "datasets": [
-            "friedman1_1000samples_512features"
+            "friedman1_1000samples_768features"
         ],
         "algorithms": [
             {
