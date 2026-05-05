@@ -69,7 +69,7 @@ class NNwrapper:
             Y,
             device='cpu',
             learning_rate=0.0015,
-            epochs=200,  
+            epochs=400,  
             batch_size=64,  # 64
             weight_decay=0.00005,
             patience=20,

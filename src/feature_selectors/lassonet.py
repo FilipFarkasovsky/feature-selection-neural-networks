@@ -26,7 +26,7 @@ class LassoNetFeatureSelector(BaseEmbeddedFeatureSelector):
             M= 10,
             path_multiplier=1.02,
             verbose = False,
-            n_iters = (300,100),
+            n_iters = (400,100),
             device=device,
             **kwargs
         )
