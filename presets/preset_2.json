@@ -3,9 +3,9 @@
         "description": "Dnn-based methods for prostate dataset",
         "run_once": false,
         "category": "dnn-based",
-        "n_informative": 128,
+        "n_informative": 7,
         "datasets": [
-            "Prostate_GSE6919_U95C"
+            "friedman1_1000samples_1024features"
         ],
         "algorithms": [
             {
