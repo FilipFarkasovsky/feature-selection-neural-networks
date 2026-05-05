@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import pandas as pd
+import time
 
 from util.dict import flatten_dict
 from results.loader import ResultsLoader
@@ -16,15 +17,14 @@ from sklearn.dummy import DummyClassifier
 
 from sklearn.metrics import make_scorer, accuracy_score, recall_score, precision_score, f1_score
 from .measures import one_vs_all_roc_auc
+from .neural_network_prediction import run_pipeline
 
 
 class SelectionScorer:
     default_models = {
         'SupportVectorMachine': SVC(),
         'DecisionTree': DecisionTreeClassifier(),
-        'RandomForest': RandomForestClassifier(),
-        'NaiveBayes': GaussianNB(),
-        'ZeroR': DummyClassifier()
+        'RandomForest': RandomForestClassifier()
     }
 
     default_scoring = {
@@ -55,7 +55,18 @@ class SelectionScorer:
     def eval(X, y, models=None, scoring=None):
         models = models or SelectionScorer.default_models
         scoring = scoring or SelectionScorer.default_scoring
-        return {name: SelectionScorer._eval(X, y, model, scoring) for name, model in models.items()}
+        
+        results = {name: SelectionScorer._eval(X, y, model, scoring) for name, model in models.items()}
+
+        nn_start = time.time()
+        nn_out = run_pipeline(X, y, verbose=True)
+        nn_time = time.time() - nn_start
+
+        results["nn_macro_f1"] = nn_out["macro_f1"]
+        results["nn_accuracy"] = nn_out["accuracy"]
+        results["nn_time"] = nn_time
+        results["nn_epochs"] = nn_out["epochs_trained"]
+        return results
 
 
 class ResultsScorer:
@@ -93,8 +104,7 @@ class ResultsScorer:
             'dataset': result['dataset_name'],
             'features': result['num_features'],
             'selected': result['num_selected'],
-            'sampling': result['sampling'],
-            'values': result['values'],
+            'sampling': result['sampling']
         }
 
     @staticmethod

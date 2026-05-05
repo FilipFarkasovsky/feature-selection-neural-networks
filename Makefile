@@ -9,6 +9,9 @@ lint:
 
 build-synthetic-data:
 	python scripts/synthetic_datasets.py
+	python scripts/friedman_dataset.py
+	python scripts/xor2_dataset.py
+	python scripts/xor3_dataset.py
 
 build-xor-data:
 	python scripts/xor_dataset.py
