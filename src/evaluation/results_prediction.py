@@ -70,7 +70,7 @@ class SelectionScorer:
 
 
 class ResultsScorer:
-    DEFAULT_EVALUATE_AT = [8, 16, 32, 64, 128]
+    DEFAULT_EVALUATE_AT = [3,7,8, 16, 32, 64, 128]
 
     @staticmethod
     def summarized_score_all(results_path, datasets, return_complete=False, evaluate_at = None):
