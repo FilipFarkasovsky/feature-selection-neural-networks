@@ -59,7 +59,7 @@ class SelectionScorer:
         results = {name: SelectionScorer._eval(X, y, model, scoring) for name, model in models.items()}
 
         nn_start = time.time()
-        nn_out = run_pipeline(X, y, verbose=True)
+        nn_out = run_pipeline(X, y, verbose=False)
         nn_time = time.time() - nn_start
 
         results["nn_macro_f1"] = nn_out["macro_f1"]

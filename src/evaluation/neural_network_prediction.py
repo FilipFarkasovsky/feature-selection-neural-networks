@@ -27,10 +27,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score, classification_report, accuracy_score, roc_auc_score
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # 1. Model
-# ──────────────────────────────────────────────────────────────────────────────
-
 class NeuralNet(nn.Module):
     """
     Staged-reduction MLP with BatchNorm + Dropout + ReLU.
@@ -44,29 +41,28 @@ class NeuralNet(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            # ── Block 1: input → 128 ──────────────────────────────────────
-            nn.Linear(input_dim, 128),
-            nn.BatchNorm1d(128),
+            # ── Block 1: input → 128 
+            nn.Linear(input_dim, 64),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.Dropout(p=0.3),
 
-            # ── Block 2: 128 → 64 ────────────────────────────────────────
-            nn.Linear(128, 64),
-            nn.BatchNorm1d(64),
+            # ── Block 2: 128 → 64 
+            nn.Linear(64, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Dropout(p=0.2),
 
-            # ── Block 3: 64 → 16  (first user-requested layer) ───────────
-            nn.Linear(64, 16),
+            # ── Block 3: 64 → 16  
+            nn.Linear(32, 16),
             nn.BatchNorm1d(16),
             nn.ReLU(),
 
-            # ── Block 4: 16 → 16  (second user-requested layer) ──────────
+            # ── Block 4: 16 → 16 
             nn.Linear(16, 16),
             nn.BatchNorm1d(16),
             nn.ReLU(),
 
-            # ── Output ────────────────────────────────────────────────────
             nn.Linear(16, n_classes),
         )
 
@@ -84,16 +80,8 @@ class NeuralNet(nn.Module):
         return self.net(x)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # 2. Early Stopping
-# ──────────────────────────────────────────────────────────────────────────────
-
 class EarlyStopping:
-    """
-    Stops training when validation loss has not improved for `patience` epochs.
-    Saves the best model weights in memory so they can be restored.
-    """
-
     def __init__(self, patience: int = 20, min_delta: float = 1e-4):
         self.patience   = patience
         self.min_delta  = min_delta
@@ -117,10 +105,7 @@ class EarlyStopping:
             model.load_state_dict(self.best_state)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # 3. Training helpers
-# ──────────────────────────────────────────────────────────────────────────────
-
 def _to_tensor(arr: np.ndarray, dtype=torch.float32) -> torch.Tensor:
     return torch.tensor(arr, dtype=dtype)
 
@@ -159,51 +144,25 @@ def _predict(model, loader, device) -> np.ndarray:
     return np.concatenate(preds)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # 4. Public entry point
-# ──────────────────────────────────────────────────────────────────────────────
-
 def run_pipeline(
     X: np.ndarray,
     Y: np.ndarray,
     *,
-    # ── split sizes ──────────────────────────────────────────────────────────
     val_size:     float = 0.15,
     test_size:    float = 0.15,
-    # ── training hyper-parameters ────────────────────────────────────────────
     batch_size:   int   = 64,
     lr:           float = 1e-3,
     weight_decay: float = 1e-4,
-    max_epochs:   int   = 300,
+    max_epochs:   int   = 400,
     patience:     int   = 20,
-    # ── misc ─────────────────────────────────────────────────────────────────
     random_state: int   = 42,
     verbose:      bool  = True,
 ) -> dict:
-    """
-    Full classification pipeline.
-
-    Parameters
-    ----------
-    X : np.ndarray, shape (n_samples, n_features)
-        Feature matrix.  n_features should be in the ~100-130 range.
-    Y : np.ndarray, shape (n_samples,)
-        Class labels (int or str — encoded internally).
-
-    Returns
-    -------
-    dict with keys:
-        model        – trained NeuralNet (best weights restored)
-        macro_f1     – macro-averaged F1 on the test set
-        report       – full sklearn classification_report string
-        history      – dict of train/val loss lists
-        label_encoder– fitted LabelEncoder
-    """
 
     torch.manual_seed(random_state)
     np.random.seed(random_state)
 
-    # ── 4a. Encode labels ────────────────────────────────────────────────────
     le = LabelEncoder()
     Y_enc = le.fit_transform(Y).astype(np.int64)
     n_classes = len(le.classes_)
@@ -214,7 +173,6 @@ def run_pipeline(
         print(f"Input dim   : {input_dim}")
         print(f"Samples     : {len(X)}")
 
-    # ── 4b. Stratified split: train / val / test ─────────────────────────────
     sss_test = StratifiedShuffleSplit(
         n_splits=1, test_size=test_size, random_state=random_state
     )
@@ -238,7 +196,6 @@ def run_pipeline(
             f"val={len(X_val)}  test={len(X_test)}"
         )
 
-    # ── 4c. DataLoaders ──────────────────────────────────────────────────────
     def make_loader(Xd, Yd, shuffle):
         ds = torch.utils.data.TensorDataset(
             _to_tensor(Xd, torch.float32),
@@ -252,7 +209,6 @@ def run_pipeline(
     val_loader   = make_loader(X_val,   Y_val,   shuffle=False)
     test_loader  = make_loader(X_test,  Y_test,  shuffle=False)
 
-    # ── 4d. Model, loss, optimiser, scheduler ────────────────────────────────
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model     = NeuralNet(input_dim, n_classes).to(device)
@@ -265,7 +221,6 @@ def run_pipeline(
     )
     stopper = EarlyStopping(patience=patience)
 
-    # ── 4e. Training loop ────────────────────────────────────────────────────
     history = {"train_loss": [], "val_loss": []}
 
     actual_epochs = 0
@@ -292,7 +247,6 @@ def run_pipeline(
 
     stopper.restore_best(model)
 
-    # ── 4f. Evaluation on test set ───────────────────────────────────────────
     y_pred   = _predict(model, test_loader, device)
     macro_f1 = f1_score(Y_test, y_pred, average="macro")
     accuracy = accuracy_score(Y_test, y_pred)
@@ -316,16 +270,3 @@ def run_pipeline(
         "epochs_trained":actual_epochs,   
 
     }
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 5. Smoke-test
-# ──────────────────────────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    rng    = np.random.default_rng(0)
-    X_demo = rng.standard_normal((1000, 115)).astype(np.float32)
-    Y_demo = rng.integers(0, 4, size=1000)
-
-    results = run_pipeline(X_demo, Y_demo)
-    print(f"\nFinal Macro F1: {results['macro_f1']:.4f}")

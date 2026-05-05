@@ -17,6 +17,7 @@ from evaluation.results_prediction import ResultsScorer
 from evaluation.results_stability import ResultsStability
 from evaluation.results_execution_time import ExecutionTimesAggregator
 from data.datasets_config import datasets_relative_paths
+from evaluation.prediction_before import summary_before_prediction
 
 from multiprocessing import cpu_count
 from time import time
@@ -61,7 +62,10 @@ def main():
         for name, path in datasets_relative_paths.items()
         if name in used_datasets
     }
+
     datasets = DatasetManager(datasets_folder_path, filtered_paths, normalize=True)
+    
+    summary_before_prediction(used_datasets, datasets, scoring_filename, results_path)
 
     # Feature selection stage
     if mode in ['all', 'select']:
