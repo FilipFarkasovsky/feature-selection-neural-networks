@@ -10,7 +10,7 @@ library(ggplot2)
 
 
 # number of informative features for Friedman
-N_INFORMATIVE = 7
+N_INFORMATIVE = 5
 
 # --------------------------------------------------
 # Data loading
@@ -57,9 +57,37 @@ scoring_all <- files_scoring %>%
 # Inspect result
 print(scoring_all)
 
+#----------------------------------------------------------
+# Change names
+selection_all$name <- recode(selection_all$name,
+                          "Cancelout" = "CancelOut",
+                          "Lasso" = "Lasso",
+                          "LinearSVM" = "Linear SVM",
+                          "KruskallWallisFilter" = "Kruskal-Wallis Filter",
+                          "DecisionTree" = "Decision Tree",
+                          "RandomForest" = "Random Forest",
+                          "MutualInformationFilter" = "Mutual Information Filter",
+                          "ReliefFFeatureSelector" = "ReliefF",
+                          "SVMRFE" = "SVM RFE",
+                          "MRMR" = "mRMR"
+)
+
+scoring_all$name <- recode(scoring_all$name,
+                             "Cancelout" = "CancelOut",
+                             "Lasso" = "Lasso",
+                             "LinearSVM" = "Linear SVM",
+                             "KruskallWallisFilter" = "Kruskal-Wallis Filter",
+                             "DecisionTree" = "Decision Tree",
+                             "RandomForest" = "Random Forest",
+                             "MutualInformationFilter" = "Mutual Information Filter",
+                             "ReliefFFeatureSelector" = "ReliefF",
+                             "SVMRFE" = "SVM RFE",
+                             "MRMR" = "mRMR"
+)
+
+
 #------------------------------------------------------------------
 # Plot pecentage of informative feature in top k features
-
 
 model_data <- selection_all %>%
     filter(result_type %in% c("weights", "rank"))
@@ -72,7 +100,7 @@ parse_values <- function(s) {
         str_trim() %>%
         as.numeric()
 }
-k_values <- c(8, 16, 32, 64, 128, 256)
+k_values <- c(8, 16, 32, 64, 128)
 
 score_one_row <- function(values_str, true_k, result_type) {
     vals <- parse_values(values_str)
@@ -129,16 +157,32 @@ print(results_long)
 results_long <- results_long %>%
     mutate(pcif = score / N_INFORMATIVE * 100)
 results_long <- results_long %>%
-    mutate(k = factor(k, levels = c(0, 8, 16, 32, 64, 128, 256)))
+    mutate(k = factor(k, levels = c(0, 8, 16, 32, 64, 128)))
+
+
+scoring_all <- scoring_all %>%
+    mutate(selected = factor(selected, levels = c(0, 8, 16, 32, 64, 128)))
 
 ggplot(results_long, aes(x = k, y = pcif, color = name, group = name)) +
-    stat_summary(fun = mean, geom = "line", linewidth = 1) +
-    stat_summary(fun = mean, geom = "point", size = 2) +
+    stat_summary(fun = mean, geom = "line", linewidth = 1, alpha = 0.8) +
+    stat_summary(fun = mean, geom = "point", size = 2.5, alpha = 0.9) +
     labs(
-        title = "Feature Selection Performance",
+        title = "",
         x = "Top-k selected features",
         y = "Percentage of correctly selected informative features",
         color = "Method"
     ) +
     theme_minimal() +
     coord_cartesian(ylim = c(0, 100))
+
+ggplot(scoring_all, aes(x = selected, y = nn_macro_f1, color = name, group = name)) +
+    stat_summary(fun = mean, geom = "line", linewidth = 1, alpha = 0.8) +
+    stat_summary(fun = mean, geom = "point", size = 2.5, alpha = 0.9) +
+    labs(
+        title = "",
+        x = "Number of selected features",
+        y = "Macro F1 of Neural Networ",
+        color = "Method"
+    ) +
+    theme_minimal() +
+    coord_cartesian(ylim = c(0, 1))

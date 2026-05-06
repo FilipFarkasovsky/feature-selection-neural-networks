@@ -52,5 +52,11 @@ run-preset-5:
 run-preset-6:
 	python src/main.py all -p preset_6 -n 1 -vv
 
+run-preset-7:
+	python src/main.py all -p preset_7 -n 1 -vv
+
+run-preset-8:
+	python src/main.py all -p preset_8 -n 1 -vv
+	
 plot-figures:
 	Rscript src/figures/plot_figures.R

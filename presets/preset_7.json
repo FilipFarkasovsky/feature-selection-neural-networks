@@ -1,0 +1,67 @@
+[
+    {
+        "description": "Classical algorithms for friedman datasets",
+        "run_once": false,
+        "category": "classical",
+        "n_informative": 7,
+        "datasets": [
+            "friedman1_1000samples_896features"
+        ],
+        "algorithms": [
+            {
+                "name": "MRMR",
+                "params": [[128]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "MutualInformationFilter",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "KruskallWallisFilter",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "ReliefFFeatureSelector",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "Lasso",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "LinearSVM",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "SVMRFE",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "DecisionTree",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            },
+            {
+                "name": "RandomForest",
+                "params": [[null]],
+                "runs": 1,
+                "sample_runs": 0
+            }
+        ]
+    }
+]

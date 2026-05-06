@@ -10,7 +10,7 @@ class DatasetParams:
     def __init__(self, n_samples: int, n_features: int, noise_std: float = 0.5):
         self.n_samples = n_samples
         self.n_features = n_features
-        self.n_informative = 5  # x1..x5
+        self.n_informative = 6  # x1..x
         self.n_noisy = n_features - self.n_informative
         self.noise_std = noise_std
 
@@ -31,17 +31,21 @@ class DatasetParams:
         # All features uniform [0,1]
         X_inf = np.random.uniform(0, 1, size=(self.n_samples, self.n_informative))
 
-        # Friedman #1 target
+        # X_inf[:, 0] & X_inf[:, 1] - INTER-XOR
+        # X_inf[:, 2]            - QUADRATIC
+        # X_inf[:, 3] & X_inf[:, 4] - MULTIPLICATIVE
+        # X_inf[:, 5]            - LINEAR
+
         f = (
-            10 * np.sin(np.pi * X_inf[:, 0] * X_inf[:, 1])
-            + 20 * (X_inf[:, 2] - 0.5) ** 2
-            + 10 * X_inf[:, 3]
-            + 5 * X_inf[:, 4]
-            + np.random.normal(0, self.noise_std, self.n_samples)
+            20 * (X_inf[:, 0] - 0.5) * (X_inf[:, 1] - 0.5) # XOR Continous
+            + 20 * (X_inf[:, 2] - 0.5) ** 2             # Quadratic
+            + 15 * (X_inf[:, 3] * X_inf[:, 4])          # Multiplicative
+            + 10 * X_inf[:, 5]                          # Linear Control
+            + np.random.normal(0, self.noise_std, self.n_samples) # Noise
         )
 
         # Center f(x)
-        f_centered = f - np.mean(f)
+        f_centered = f - np.median(f)
 
         # Logistic transformation
         prob = 1 / (1 + np.exp(-f_centered))
@@ -106,11 +110,14 @@ dataset.to_csv(DATASETS_PATH)
 dataset = DatasetParams(n_samples=1000, n_features=512, noise_std=1.0)
 dataset.to_csv(DATASETS_PATH)
 
+dataset = DatasetParams(n_samples=1000, n_features=768, noise_std=1.0)
+dataset.to_csv(DATASETS_PATH)
+
 dataset = DatasetParams(n_samples=1000, n_features=1024, noise_std=1.0)
 dataset.to_csv(DATASETS_PATH)
 
-dataset = DatasetParams(n_samples=1000, n_features=2048, noise_std=1.0)
+dataset = DatasetParams(n_samples=1000, n_features=896, noise_std=1.0)
 dataset.to_csv(DATASETS_PATH)
 
-dataset = DatasetParams(n_samples=1000, n_features=768, noise_std=1.0)
+dataset = DatasetParams(n_samples=1000, n_features=2048, noise_std=1.0)
 dataset.to_csv(DATASETS_PATH)
