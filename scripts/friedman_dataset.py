@@ -31,11 +31,6 @@ class DatasetParams:
         # All features uniform [0,1]
         X_inf = np.random.uniform(0, 1, size=(self.n_samples, self.n_informative))
 
-        # X_inf[:, 0] & X_inf[:, 1] - INTER-XOR
-        # X_inf[:, 2]            - QUADRATIC
-        # X_inf[:, 3] & X_inf[:, 4] - MULTIPLICATIVE
-        # X_inf[:, 5]            - LINEAR
-
         f = (
             20 * (X_inf[:, 0] - 0.5) * (X_inf[:, 1] - 0.5) # XOR Continous
             + 20 * (X_inf[:, 2] - 0.5) ** 2             # Quadratic

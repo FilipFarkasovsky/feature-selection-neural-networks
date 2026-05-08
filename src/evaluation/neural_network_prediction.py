@@ -1,24 +1,3 @@
-"""
-Neural Network Pipeline — PyTorch
-----------------------------------
-Entry point: run_pipeline(X, Y)
-
-Architecture rationale
-----------------------
-Input dim ~100-130 is moderately high for 1 000 samples, so a straight
-128→16→16 bottleneck risks an information loss that hurts early training.
-A staged reduction  input→128→64→16→16→out  gives the network room to
-learn gradually and is still lightweight enough to avoid over-fitting.
-
-Regularisation stack:
-  • BatchNorm  — stabilises activations, acts as a mild regulariser
-  • Dropout(0.3 / 0.2) — explicit regularisation on wider layers
-  • Early stopping — stops training when val-loss stops improving
-
-Weights: Kaiming Uniform (He) — the standard choice for ReLU networks.
-Metric : Macro F1 on a held-out test set (stratified split).
-"""
-
 import torch
 import torch.nn as nn
 import numpy as np
@@ -30,30 +9,23 @@ from sklearn.metrics import f1_score, classification_report, accuracy_score, roc
 # 1. Model
 class NeuralNet(nn.Module):
     """
-    Staged-reduction MLP with BatchNorm + Dropout + ReLU.
-
-    Layer widths: in → 128 → 64 → 16 → 16 → n_classes
-    The first two layers handle the high-dimensional input and compress it
-    before the two 16-unit layers specified by the user.
+    BatchNorm + Dropout + ReLU..
     """
 
     def __init__(self, input_dim: int, n_classes: int):
         super().__init__()
 
         self.net = nn.Sequential(
-            # ── Block 1: input → 128 
             nn.Linear(input_dim, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Dropout(p=0.3),
 
-            # ── Block 2: 128 → 64 
             nn.Linear(32, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Dropout(p=0.2),
 
-            # ── Block 3: 64 → 16  
             nn.Linear(32, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
@@ -249,11 +221,6 @@ def run_pipeline(
         Y_test, y_pred,
         target_names=[str(c) for c in le.classes_],
     )
-
-    if verbose:
-        print("\n── Test-set results ──────────────────────────────────────────")
-        print(f"Macro F1 : {macro_f1:.4f}")
-        print(report)
 
     return {
         "model":         model,
