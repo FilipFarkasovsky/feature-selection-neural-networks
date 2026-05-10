@@ -39,16 +39,18 @@ https://github.com/FilipFarkasovsky/feature-selection-neural-networks
 This extension integrates feature selection methods with neural network models to evaluate how selected feature subsets influence model behavior. The analysis focuses on:
 
 - Model performance across different feature selection techniques  
-- Stability of feature selection across runs  
 - Trade-offs between accuracy and computational cost  
 
 ---
 
-## Purpose
+## Usage
 
-The project aims to provide a reproducible framework for evaluating feature selection methods in a deep learning context and to extend existing benchmark comparisons with neural network-based experimentation.
+Run the following commands to install dependencies, download the datasets, and execute the complete experimental pipeline:
 
----
+```bash
+make setup
+make download-cumida-data
+make run-pipeline
 
 ## License
 
