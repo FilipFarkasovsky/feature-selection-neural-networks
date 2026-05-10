@@ -1,22 +1,16 @@
-Python 3.12.12
+Python 3.11.15
 
-numpy
-pandas
-scipy
-scikit-learn
-tqdm
-urllib3
-dataclasses
+numpy==1.26.4
+pandas==3.0.1
+scipy==1.17.1
+scikit-learn==1.8.0
+tqdm==4.67.3urllib3
+dataclasses==0.6
+matplotlib==3.10.8
 
-tensorflow
-lassonet
-keras
-captum
-torch --index-url https://download.pytorch.org/whl/cu121
-
-
-shap
-xlrd
-optuna
-python_mnist
+tensorflow==2.21.0
+lassonet==0.0.20
+keras==3.13.2
+captum==0.8.0
+torch==2.5.1+cu121
 

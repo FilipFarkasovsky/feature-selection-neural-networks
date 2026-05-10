@@ -34,7 +34,7 @@ plot-figures:
 	Rscript src/figures/plot_figures.R
 
 # -------------------------
-# Pipeline (IMPORTANT PART)
+# Pipeline
 # -------------------------
 
 run-all-presets: run-preset-1 run-preset-2 run-preset-3 run-preset-4 run-preset-5 run-preset-6
