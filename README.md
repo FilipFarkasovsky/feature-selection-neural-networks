@@ -51,7 +51,4 @@ Run the following commands to install dependencies, download the datasets, and e
 make setup
 make download-cumida-data
 make run-pipeline
-
-## License
-
-Specify your license here (e.g., MIT, Apache 2.0).
+```
