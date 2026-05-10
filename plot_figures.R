@@ -10,7 +10,7 @@ library(ggplot2)
 
 
 # number of informative features for Friedman
-N_INFORMATIVE = 5
+N_INFORMATIVE = 6
 
 # --------------------------------------------------
 # Data loading
@@ -56,6 +56,18 @@ scoring_all <- files_scoring %>%
 
 # Inspect result
 print(scoring_all)
+
+# Find all files containing "selection"
+files_scoring_before_pred <- list.files(
+    path = "./results",
+    pattern = "scoring-before-pred.*\\.csv$",
+    full.names = TRUE
+)
+
+# Read and combine
+scoring_before_pred_all <- files_scoring_before_pred %>%
+    map(~ read_csv(.x)) %>%
+    bind_rows()
 
 #----------------------------------------------------------
 # Change names
@@ -151,7 +163,58 @@ results_long <- results %>%
 print(results)
 print(results_long)
 
+#---------------------------------------------------------------------
 
+# Extract Top K indices based on weights or ranks
+get_top_k_indices <- function(values_str, result_type, target_k) {
+    vals <- parse_values(values_str)
+    n    <- length(vals)
+
+    if (result_type == "weights") {
+        ranked_indices <- order(abs(vals), decreasing = TRUE)
+    } else if (result_type == "rank") {
+        ranked_indices <- order(vals, decreasing = FALSE)
+    }
+
+    k_eff <- min(target_k, n)
+    return(ranked_indices[seq_len(k_eff)])
+}
+
+# Evaluate the specific signal components
+evaluate_signal_components <- function(selected_indices) {
+    tibble(
+        xor_x1_x2   = (1 %in% selected_indices) & (2 %in% selected_indices),
+        quad_x3     = (3 %in% selected_indices),
+        inter_x4_x5 = (4 %in% selected_indices) & (5 %in% selected_indices),
+        linear_x6   = (6 %in% selected_indices)
+    )
+}
+
+# subset size at which signal recovery is evealuated
+TARGET_K <- 8
+
+signal_recovery_table <- model_data %>%
+    rowwise() %>%
+    mutate(
+        # Extract the selected indices for this specific trial
+        top_k_idx = list(get_top_k_indices(values, as.character(result_type), TARGET_K)),
+        # Apply the signal logic
+        signals = list(evaluate_signal_components(top_k_idx))
+    ) %>%
+    ungroup() %>%
+    # Unpack the tibble of logicals into separate columns
+    unnest(signals) %>%
+    # Group by method name to calculate percentages across the 3 datasets
+    group_by(name) %>%
+    summarise(
+        `[x1 and x2] Continuous XOR (%)` = mean(xor_x1_x2) * 100,
+        `[x3] Quadratic (%)` = mean(quad_x3) * 100,
+        `[x4 and x5] Multiplicative Interaction (%)` = mean(inter_x4_x5) * 100,
+        `[x6] Linear (%)` = mean(linear_x6) * 100,
+        .groups = "drop"
+    )
+
+print(signal_recovery_table)
 #----------------------------------------------------------------------
 # percentage of correctly identified features
 results_long <- results_long %>%
@@ -186,3 +249,26 @@ ggplot(scoring_all, aes(x = selected, y = nn_macro_f1, color = name, group = nam
     ) +
     theme_minimal() +
     coord_cartesian(ylim = c(0, 1))
+
+
+mean_by_method_and_selected_selection <- results_long %>%
+    group_by(name, k) %>%
+    summarise(
+        mean_pcif  = mean(pcif, na.rm = TRUE),
+        .groups    = "drop"
+    )%>%
+    pivot_wider(
+        names_from = k,
+        values_from = mean_pcif
+    )
+
+mean_by_method_and_selected_scoring_all <- scoring_all %>%
+    group_by(name) %>%
+    summarise(
+        processing_time  = mean(processing_time, na.rm = TRUE),
+        nn_macro_f1  = mean(nn_macro_f1, na.rm = TRUE),
+        nn_time  = mean(nn_time, na.rm = TRUE),
+        nn_epochs  = mean(nn_epochs, na.rm = TRUE),
+        .groups    = "drop"
+    )
+

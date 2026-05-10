@@ -4,35 +4,13 @@ setup:
 setup-dev:
 	pip install -r requirements.txt -r requirements_dev.txt
 
-lint:
-	flake8
-
 build-synthetic-data:
-	python scripts/synthetic_datasets.py
 	python scripts/friedman_dataset.py
-	python scripts/xor2_dataset.py
-	python scripts/xor3_dataset.py
 
-build-xor-data:
-	python scripts/xor_dataset.py
 
-download-cumida-data:
-	python scripts/download_cumida_datasets.py
-
-run:
-	python src/main.py all -p default -n 1 -vv
-
-run-test-algorithms:
-	python src/main.py all -p test_algorithms -n 1 -vv
-
-run-test-pipeline:
-	python src/main.py all -p test_pipeline -n 1 -vv
-
-run-reduced:
-	python src/main.py all -p reduced -n 31 -vv
-
-run-test:
-	python src/main.py all -p test_preset -n 1 -vv
+# -------------------------
+# Individual presets
+# -------------------------
 
 run-preset-1:
 	python src/main.py all -p preset_1 -n 1 -vv
@@ -51,12 +29,17 @@ run-preset-5:
 
 run-preset-6:
 	python src/main.py all -p preset_6 -n 1 -vv
-
-run-preset-7:
-	python src/main.py all -p preset_7 -n 1 -vv
-
-run-preset-8:
-	python src/main.py all -p preset_8 -n 1 -vv
 	
 plot-figures:
 	Rscript src/figures/plot_figures.R
+
+# -------------------------
+# Pipeline (IMPORTANT PART)
+# -------------------------
+
+run-all-presets: run-preset-1 run-preset-2 run-preset-3 run-preset-4 run-preset-5 run-preset-6
+
+plot-figures:
+	Rscript src/figures/plot_figures.R
+
+run-pipeline: run-all-presets plot-figures
